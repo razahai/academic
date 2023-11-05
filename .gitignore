@@ -1,0 +1,7 @@
+run.bat
+*.txt 
+.env
+dev/
+
+# raw folders before committing
+*-original/
