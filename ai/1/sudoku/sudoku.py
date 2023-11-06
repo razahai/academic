@@ -3,7 +3,6 @@ import sys; args = sys.argv[1:]
 # sudoku - undefined%
 
 def jbf(pzl):
-    if invalid(pzl): return ""
     if solved(pzl): return pzl
 
     possible_choices = choices(pzl)
@@ -14,14 +13,6 @@ def jbf(pzl):
     return ""
 
 # utils
-def invalid(pzl):
-    for constraint in LOCS:
-        for i in constraint:
-            for j in constraint:
-                if pzl[i] == pzl[j] and pzl[i] != "." and i!=j:
-                    return True
-    return False
-
 def solved(pzl):
     if "." in pzl:
         return False
@@ -33,101 +24,55 @@ def choices(pzl):
         if pzl[i] == ".":
             for t in SYMSET:
                 choice = pzl[:i]+t+pzl[i+1:]
-                choices.add(choice)
+                if not q_invalid(choice, NBRS[i]):
+                    choices.add(choice)
             return choices
 
-def get_symbols(pzl):
-    symbols = set()
-    for c in pzl:
-        if c != ".":
-            symbols.add(c)
-    
-    offset = 0
-    while len(symbols) < N:
-        symbols.add(chr(ord('1')+offset))
-        offset+=1
-
-    return list(symbols)
-
-def gen_csets():
-    constraints = []
-
-    # rows
-    r = 0
-    for i in range(N):
-        constraint = set()
-        for j in range(N):
-            constraint.add(r)
-            r+=1
-        constraints.append(constraint)
-    
-    # cols
-    c = 0
-    offset = 1
-    for i in range(N):
-        constraint = set()
-        for j in range(N):
-            constraint.add(c)
-            for k in range(N):
-                c+=1
-        constraints.append(constraint)
-        c=offset
-        offset+=1
-    
-    # subblocks
-    offset = 0
-    for i in range(N):
-        constraint = set()
-        for j in range(sbw):
-            constraint.add(offset)
-            constraint.add(offset+N)
-            offset+=1
-        if (offset-1)%N == N-1:
-            offset+=N*(sbh-1)
-        constraints.append(constraint)
-
-    return constraints
-
-def get_dimensions(area, overall=1):
-    for i in range(1, area):
-        for j in range(1, area):
-            if i<j: continue
-            if (i*j)*overall==area:
-                return (i,j)
-      
-def set_globals(pzl):    
-    global N, SYMSET, sbw, sbh
-
-    N = get_dimensions(len(pzl))[0] # (n, n) <- get n
-    SYMSET = get_symbols(pzl)
-    sbw, sbh = get_dimensions(len(pzl), N)
-
-def checksum(pzl):
-    return 324
-
-def formatted(n, pzl, solution):
-    output = ""
-    cs = checksum(pzl)
-
-    if n < 10:
-        output += "  "+str(n)+": "
-    elif n < 100:
-        output += " "+str(n)+": "
-    else:
-        output += str(n)+": "
-    
-    output += pzl+"\n"
-    output += "     "+solution # 5 spaces
-    output += " "+str(cs)
-
-    return output
+def q_invalid(pzl, constraints):
+    for constraint in constraints:
+        if len(ls:=[pzl[i] for i in LOCS[constraint] if pzl[i] != "."]) != len(set(ls)):
+            return True
+    return False
 
 if __name__ == "__main__":
     pzls = open(args[0]).read().splitlines()
-    
+
+    N = 9
+    sbw, sbh = 3, 3
+    LOCS = [
+        {0,1,2,3,4,5,6,7,8},
+        {9,10,11,12,13,14,15,16,17},
+        {18,19,20,21,22,23,24,25,26},
+        {27,28,29,30,31,32,33,34,35},
+        {36,37,38,39,40,41,42,43,44},
+        {45,46,47,48,49,50,51,52,53},
+        {54,55,56,57,58,59,60,61,62},
+        {63,64,65,66,67,68,69,70,71},
+        {72,73,74,75,76,77,78,79,80},
+        {0,9,18,27,36,45,54,63,72},
+        {1,10,19,28,37,46,55,64,73},
+        {2,11,20,29,38,47,56,65,74},
+        {3,12,21,30,39,48,57,66,75},
+        {4,13,22,31,40,49,58,67,76},
+        {5,14,23,32,41,50,59,68,77},
+        {6,15,24,33,42,51,60,69,78},
+        {7,16,25,34,43,52,61,70,79},
+        {8,17,26,35,44,53,62,71,80},
+        {0,1,2,9,10,11,18,19,20},
+        {3,4,5,12,13,14,21,22,23},
+        {6,7,8,15,16,17,24,25,26},
+        {27,28,29,36,37,38,45,46,47},
+        {30,31,32,39,40,41,48,49,50},
+        {33,34,35,42,43,44,51,52,53},
+        {54,55,56,63,64,65,72,73,74},
+        {57,58,59,66,67,68,75,76,77},
+        {60,61,62,69,70,71,78,79,80}
+    ]
+    NBRS = {0: [0, 9, 18], 1: [0, 10, 18], 2: [0, 11, 18], 3: [0, 12, 19], 4: [0, 13, 19], 5: [0, 14, 19], 6: [0, 15, 20], 7: [0, 16, 20], 8: [0, 17, 20], 9: [1, 9, 18], 10: [1, 10, 18], 11: [1, 11, 18], 12: [1, 12, 19], 13: [1, 13, 19], 14: [1, 14, 19], 15: [1, 15, 20], 16: [1, 16, 20], 17: [1, 17, 20], 18: [2, 9, 18], 19: [2, 10, 18], 20: [2, 11, 18], 21: [2, 12, 19], 22: [2, 13, 19], 23: [2, 14, 19], 24: [2, 15, 20], 25: [2, 16, 20], 26: [2, 17, 20], 32: [3, 14, 22], 33: [3, 15, 23], 34: [3, 16, 23], 35: [3, 17, 23], 27: [3, 9, 21], 28: [3, 10, 21], 29: [3, 11, 21], 30: [3, 12, 22], 31: [3, 13, 22], 36: [4, 9, 21], 37: [4, 10, 21], 38: [4, 11, 21], 39: [4, 12, 22], 40: [4, 13, 22], 41: [4, 14, 22], 42: [4, 15, 23], 43: [4, 16, 23], 44: [4, 17, 23], 45: [5, 9, 21], 46: [5, 10, 21], 47: [5, 11, 21], 48: [5, 12, 22], 49: [5, 13, 22], 50: [5, 14, 22], 51: [5, 15, 23], 52: [5, 16, 23], 53: [5, 17, 23], 54: [6, 9, 24], 55: [6, 10, 24], 56: [6, 11, 24], 57: [6, 12, 25], 58: [6, 13, 25], 59: [6, 14, 25], 60: [6, 15, 26], 61: [6, 16, 26], 62: [6, 17, 26], 64: [7, 10, 24], 65: [7, 11, 24], 66: [7, 12, 25], 67: [7, 13, 25], 68: [7, 14, 25], 69: [7, 15, 26], 70: [7, 16, 26], 71: [7, 17, 26], 63: [7, 9, 24], 72: [8, 9, 24], 73: [8, 10, 24], 74: [8, 11, 24], 75: [8, 12, 25], 76: [8, 13, 25], 77: [8, 14, 25], 78: [8, 15, 26], 79: [8, 16, 26], 80: [8, 17, 26]}
+    SYMSET = ['1','2','3','4','5','6','7','8','9']
+
     for n,pzl in enumerate(pzls):
-        set_globals(pzl)
-        LOCS = gen_csets()
+        print(f"{n+1:3}: {pzl}")
         solution = jbf(pzl)
-        print(formatted(n+1, pzl, solution))
+        print(f"     {solution} 324")
 
