@@ -185,7 +185,6 @@ if __name__ == "__main__":
                 sbw, sbh = get_dimensions(len(puzzle), N)
                 LOCS, NBRS = generate_constraints()
             SYMSET = get_symbols(puzzle)
-        print(N,sbw,sbh,LOCS,SYMSET)
         first_excluded = get_excluded(puzzle)
         print(f"{n+1:3}: {puzzle}")
         solution = jbf(puzzle,first_excluded)
