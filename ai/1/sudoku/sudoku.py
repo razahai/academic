@@ -7,7 +7,9 @@ def jbf(pzl, excluded):
 
     best_pos, affected_symset = get_best_pos(excluded)
     possible_choices = q_choices(pzl, best_pos, affected_symset)
-    
+
+    updateStats(f"choice ct {len(possible_choices)}")
+
     for choice in possible_choices:
         # deep copy
         dc_excluded = {i: excluded[i] for i in excluded}
@@ -141,8 +143,15 @@ def generate_constraints():
 
     return (constraints, nbrs)
 
+def updateStats(phrase):
+    if phrase not in STATS:
+        STATS[phrase] = 1
+    else:
+        STATS[phrase] += 1
+
 if __name__ == "__main__":
     pzls = open(args[0]).read().splitlines()
+    STATS = {}
 
     N = 9
     sbw, sbh = 3, 3
@@ -190,4 +199,5 @@ if __name__ == "__main__":
         solution = jbf(puzzle,first_excluded)
         csum = checksum(solution)
         print(f"     {solution} {csum}")
+    print(STATS)
 
