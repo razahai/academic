@@ -5,9 +5,9 @@
 
 set folder=ai
 @REM set env variables
-for /f "tokens=*" %%v in (%~dp1.env) do set %%v
+for /f "tokens=*" %%v in (%CD%\.env) do set %%v
 
-if not exist %~dp1%folder%\ echo You need to name your AI folder as the following: "%folder%" & exit /b 1
+if not exist %CD%\%folder%\ echo You need to name your AI folder as the following: "%folder%" & exit /b 1
 
 @REM temporarily append -original to the folder so it gets ignored by git
 @REM copy the original folder into a new folder called "ai" which will be
