@@ -1,6 +1,6 @@
 import sys; args = sys.argv[1:]
 
-# sudoku - undefined%
+# sudoku - 100%
 
 def jbf(pzl, excluded):
     if solved(pzl): return pzl

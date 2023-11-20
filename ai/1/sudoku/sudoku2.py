@@ -1,63 +1,117 @@
 import sys; args = sys.argv[1:]
 
-# sudoku - undefined%
+# sudoku 2 - undefined%
+# this is the worst code of all time
+# i hate this lab 
+# also the grader is stupid -> you could have 3s on your machine but it'll be 17s on the grader
+# GET MORE COMPUTING POWER PLEASE
 
-def jbf(pzl, excluded):
+def jbf(pzl, excluded, s2p):
     if solved(pzl): return pzl
 
     best_pos, affected_symset = get_best_pos(excluded)
     possible_choices = q_choices(pzl, best_pos, affected_symset)
 
     best_pos = [best_pos]
-
-    if len(possible_choices) > 1:
-        bestSym = ""
-        bestSymPos = []
-        bestLen = len(possible_choices)
-        bailout = False
-
-        for cs in LOCS:
-            if bailout == True:
-                break
-            symToPos = {}
-            unplacedSymbols = set()
-            for pos in cs:
-                if pzl[pos] != ".":
-                    unplacedSymbols.add(pzl[pos])
-            unplacedSymbols = set(SYMSET)-unplacedSymbols
-            for sym in unplacedSymbols:
-                symToPos[sym] = []
-            for pos in cs:
-                if pzl[pos] == ".":
-                    for sym in unplacedSymbols:
-                        if sym in (set(SYMSET)-excluded[pos]):
-                            symToPos[sym].append(pos)
-            for s2p in symToPos:
-                if len(symToPos[s2p]) == 1:
-                    bestSym = s2p
-                    bestSymPos = symToPos[s2p]
-                    bailout = True
-                    break
-                if len(symToPos[s2p]) < bestLen:
-                    bestSym = s2p
-                    bestSymPos = symToPos[s2p]
-                    bestLen = len(symToPos[s2p])
-        
-        if bestSymPos != []:
-            best_pos = bestSymPos
-            possible_choices = q_choices_by_sym(pzl, bestSymPos, bestSym)
+    best_sym = ""
     
+    if len(possible_choices) > 1:
+        if s2p == {}:
+            s2p = get_sym_to_pos(pzl, excluded)
+        best_sym_pos, best_sym = get_best_symbol(s2p, len(possible_choices))
+
+        if best_sym_pos != []:
+            best_pos = best_sym_pos
+            possible_choices = q_choices_by_sym(pzl, best_sym_pos, best_sym)
+
+            '''
+            naked pairs
+            doesn't even work <shrug>
+            ----
+
+            if len(possible_choices) > 1:
+                bailout = False
+                for cs in LOCS:
+                    if bailout:
+                        break
+                    for i in cs:
+                        if bailout:
+                            break
+                        for j in cs:
+                            if bailout:
+                                break
+                            if pzl[i] == "." and pzl[j] == ".":
+                                if len(excluded[i]) == 2 and len(excluded[j]) == 2 and i != j:
+                                    first = excluded[i].pop()
+                                    second = excluded[i].pop()
+                                    excluded[i].add(first)
+                                    excluded[i].add(second)
+                                    if first in excluded[j] and second in excluded[j]:
+                                        for pos in cs:
+                                            if first in excluded[pos]:
+                                                excluded[pos].remove(first)
+                                            elif second in excluded[pos]:
+                                                excluded[pos].remove(second)
+                                            if len(excluded[pos]) == 1:
+                                                aff_symset = set(SYMSET)-excluded[pos]
+                                                best_pos = pos
+                                                possible_choices = q_choices(pzl, pos, aff_symset)
+                                                bailout = True
+                                                break
+            '''
+
     updateStats(f"choice ct {len(possible_choices)}")
 
-    for choice, pos in possible_choices:
-        # deep copy
+    for choice, pos, sym in possible_choices:
+        # deep copy excluded
         dc_excluded = {i: excluded[i] for i in excluded}
         for constraint in NBRS[pos]:
             for j in LOCS[constraint]:
                 if choice[j] == ".":
                     dc_excluded[j] = dc_excluded[j]|{choice[pos]}
         dc_excluded.pop(pos)
-        nbf = jbf(choice,dc_excluded)
+        
+        # deepcopy s2p
+        dc_s2p = s2p
+        s2p_modified = False
+        cnst_syms = {}
+        pos_cs_syms = []
+        sym_props = {}
+        if dc_s2p:
+            s2p_modified = True
+            for constraint in NBRS[pos]:
+                cnst_syms[constraint] = {}
+                cnst_syms[constraint][sym] = dc_s2p[constraint][sym]
+                dc_s2p[constraint].pop(sym)
+            
+            for cs in dc_s2p:
+                for symbol in dc_s2p[cs]:
+                    # remove all pos refs
+                    if pos in dc_s2p[cs][symbol]:
+                        pos_cs_syms.append((cs,symbol))
+                        dc_s2p[cs][symbol].remove(pos)
+                    # recheck all best_sym props
+                    if symbol == sym:
+                        sym_props[cs] = {}
+                        sym_props[cs][symbol] = dc_s2p[cs][symbol]
+                        dc_s2p[cs][symbol] = []
+                        for i in LOCS[cs]:
+                            if choice[i] == ".": 
+                                psbls = [c for c in SYMSET]
+                                for j in dc_excluded[i]:
+                                    psbls.remove(j)
+                                if symbol in psbls:
+                                    dc_s2p[cs][symbol].append(i)
+        nbf = jbf(choice,dc_excluded,dc_s2p)
+        if s2p_modified:
+            for constraint in cnst_syms:
+                dc_s2p[constraint][sym] = cnst_syms[constraint][sym]
+            
+            for cs,symbol in pos_cs_syms:
+                dc_s2p[cs][symbol].append(pos)
+            
+            for cs in sym_props:
+                dc_s2p[cs][sym] = sym_props[cs][sym]
         if nbf: return nbf
     return ""
 
@@ -66,7 +120,7 @@ def q_choices(pzl, best_pos, affected_symset):
 
     for t in affected_symset:
         choice = pzl[:best_pos]+t+pzl[best_pos+1:]
-        choices.add((choice, best_pos))
+        choices.add((choice, best_pos, t))
     
     return choices 
 
@@ -75,9 +129,58 @@ def q_choices_by_sym(pzl, best_symbol_positions, best_symbol):
 
     for pos in best_symbol_positions:
         choice = pzl[:pos]+best_symbol+pzl[pos+1:]
-        choices.add((choice, pos))
+        choices.add((choice, pos, best_symbol))
     
     return choices 
+
+def get_sym_to_pos(pzl, excluded):
+    s2p = {}
+
+    for i,cs in enumerate(LOCS):
+        s2p[i] = {}
+        
+        unplacedSymbols = set()
+        for pos in cs:
+            if pzl[pos] != ".":
+                unplacedSymbols.add(pzl[pos])
+        unplacedSymbols = set(SYMSET)-unplacedSymbols
+
+        for sym in unplacedSymbols:
+            s2p[i][sym] = []
+        
+        for pos in cs:
+            if pzl[pos] == ".":
+                psbls = [c for c in SYMSET]
+                for j in excluded[pos]:
+                    psbls.remove(j)
+                for sym in unplacedSymbols:
+                    if sym in psbls:
+                        s2p[i][sym].append(pos)
+    
+    return s2p
+        
+def get_best_symbol(s2p, maxlen):
+    best_symbol = ""
+    best_sym_pos = []
+    best_len = maxlen
+    bailout = False
+
+    for cs in s2p:
+        if bailout:
+            break
+
+        for syms in s2p[cs]:
+            if len(s2p[cs][syms]) == 1:
+                best_symbol = syms
+                best_sym_pos = s2p[cs][syms]
+                bailout = True
+                break
+            if len(s2p[cs][syms]) < best_len:
+                best_symbol = syms
+                best_sym_pos = s2p[cs][syms]
+                best_len = len(s2p[cs][syms])
+
+    return (best_sym_pos, best_symbol)
 
 def get_excluded(pzl):
     excludeds = {}
@@ -234,6 +337,9 @@ if __name__ == "__main__":
     ]
     NBRS = {0: [0, 9, 18], 1: [0, 10, 18], 2: [0, 11, 18], 3: [0, 12, 19], 4: [0, 13, 19], 5: [0, 14, 19], 6: [0, 15, 20], 7: [0, 16, 20], 8: [0, 17, 20], 9: [1, 9, 18], 10: [1, 10, 18], 11: [1, 11, 18], 12: [1, 12, 19], 13: [1, 13, 19], 14: [1, 14, 19], 15: [1, 15, 20], 16: [1, 16, 20], 17: [1, 17, 20], 18: [2, 9, 18], 19: [2, 10, 18], 20: [2, 11, 18], 21: [2, 12, 19], 22: [2, 13, 19], 23: [2, 14, 19], 24: [2, 15, 20], 25: [2, 16, 20], 26: [2, 17, 20], 32: [3, 14, 22], 33: [3, 15, 23], 34: [3, 16, 23], 35: [3, 17, 23], 27: [3, 9, 21], 28: [3, 10, 21], 29: [3, 11, 21], 30: [3, 12, 22], 31: [3, 13, 22], 36: [4, 9, 21], 37: [4, 10, 21], 38: [4, 11, 21], 39: [4, 12, 22], 40: [4, 13, 22], 41: [4, 14, 22], 42: [4, 15, 23], 43: [4, 16, 23], 44: [4, 17, 23], 45: [5, 9, 21], 46: [5, 10, 21], 47: [5, 11, 21], 48: [5, 12, 22], 49: [5, 13, 22], 50: [5, 14, 22], 51: [5, 15, 23], 52: [5, 16, 23], 53: [5, 17, 23], 54: [6, 9, 24], 55: [6, 10, 24], 56: [6, 11, 24], 57: [6, 12, 25], 58: [6, 13, 25], 59: [6, 14, 25], 60: [6, 15, 26], 61: [6, 16, 26], 62: [6, 17, 26], 64: [7, 10, 24], 65: [7, 11, 24], 66: [7, 12, 25], 67: [7, 13, 25], 68: [7, 14, 25], 69: [7, 15, 26], 70: [7, 16, 26], 71: [7, 17, 26], 63: [7, 9, 24], 72: [8, 9, 24], 73: [8, 10, 24], 74: [8, 11, 24], 75: [8, 12, 25], 76: [8, 13, 25], 77: [8, 14, 25], 78: [8, 15, 26], 79: [8, 16, 26], 80: [8, 17, 26]}
     SYMSET = ['1','2','3','4','5','6','7','8','9']
+    import time
+    
+    start = time.perf_counter()
 
     for n,puzzle in enumerate(pzls):
         if n > 120:
@@ -244,8 +350,9 @@ if __name__ == "__main__":
             SYMSET = get_symbols(puzzle)
         first_excluded = get_excluded(puzzle)
         print(f"{n+1:3}: {puzzle}")
-        solution = jbf(puzzle,first_excluded)
+        solution = jbf(puzzle,first_excluded, {})
         csum = checksum(solution)
         print(f"     {solution} {csum}")
     print(STATS)
+    print(time.perf_counter()-start)
 
