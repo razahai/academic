@@ -26,39 +26,9 @@ def jbf(pzl, excluded, s2p):
             possible_choices = q_choices_by_sym(pzl, best_sym_pos, best_sym)
 
             '''
-            naked pairs
-            doesn't even work <shrug>
-            ----
-
-            if len(possible_choices) > 1:
-                bailout = False
-                for cs in LOCS:
-                    if bailout:
-                        break
-                    for i in cs:
-                        if bailout:
-                            break
-                        for j in cs:
-                            if bailout:
-                                break
-                            if pzl[i] == "." and pzl[j] == ".":
-                                if len(excluded[i]) == 2 and len(excluded[j]) == 2 and i != j:
-                                    first = excluded[i].pop()
-                                    second = excluded[i].pop()
-                                    excluded[i].add(first)
-                                    excluded[i].add(second)
-                                    if first in excluded[j] and second in excluded[j]:
-                                        for pos in cs:
-                                            if first in excluded[pos]:
-                                                excluded[pos].remove(first)
-                                            elif second in excluded[pos]:
-                                                excluded[pos].remove(second)
-                                            if len(excluded[pos]) == 1:
-                                                aff_symset = set(SYMSET)-excluded[pos]
-                                                best_pos = pos
-                                                possible_choices = q_choices(pzl, pos, aff_symset)
-                                                bailout = True
-                                                break
+            naked pairs was here -> probably didn't work because i did it wrong
+            (used excluded instead of possibles? tried that but still didn't work
+            obviously doing something wrong don't know what though <shrug>)
             '''
 
     updateStats(f"choice ct {len(possible_choices)}")
