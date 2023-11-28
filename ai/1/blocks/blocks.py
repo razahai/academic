@@ -8,13 +8,13 @@ def main():
     raw_blocks, cx, cy = extract_input(args)
     container = ["."]*(cx*cy)
     
-    raw_blocks.sort() # TODO: sort by area
+    raw_blocks.sort()#(key=lambda bk: bk[0]*bk[1], reverse=True) # <- sorted by area (pot imp)
     combined_area = normalize_blocks(raw_blocks)
     add_rotations(raw_blocks)
-
+    
     if combined_area > cx*cy:
         print("No solution")
-
+    
     solution = jbf(container, 0, raw_blocks, [])
     if solution:
         print(f"Decomposition: {solution}")
@@ -32,6 +32,8 @@ def jbf(container, tile, raw_blocks, sol):
         
         dc_raw_blocks = [r for r in raw_blocks]
         dc_raw_blocks.remove(choi)
+        if (choi[1],choi[0]) in dc_raw_blocks and choi[1] != choi[0]:
+            dc_raw_blocks.remove((choi[1],choi[0]))
         
         dc_sol = [s for s in sol]
         dc_sol.append(choi)
@@ -59,6 +61,9 @@ def choice(container, tile, raw_blocks):
                 container[tile+(cx*(y-1))+(x-1)] == ".":
                 valid_choices.append((y,x))
     
+    # sort by area
+    valid_choices.sort(key=lambda bk: bk[0]*bk[1], reverse=True)
+    
     return valid_choices    
 
 def place(container, tile, choice):
@@ -83,6 +88,8 @@ def normalize_blocks(raw_blocks):
 def add_rotations(raw_blocks):
     appendage = []
     for y,x in raw_blocks:
+        if y == x:
+            continue
         appendage.append((x,y))
     raw_blocks.extend(appendage)
 
