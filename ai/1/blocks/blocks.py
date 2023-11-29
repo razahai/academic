@@ -8,7 +8,7 @@ def main():
     raw_blocks, cx, cy = extract_input(args)
     container = ["."]*(cx*cy)
     
-    raw_blocks.sort()#(key=lambda bk: bk[0]*bk[1], reverse=True) # <- sorted by area (pot imp)
+    raw_blocks.sort(key=lambda bk: bk[0]*bk[1], reverse=True) # <- sorted by area (pot imp)
     combined_area = normalize_blocks(raw_blocks)
     add_rotations(raw_blocks)
     
