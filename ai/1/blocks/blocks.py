@@ -1,6 +1,16 @@
 import sys; args = sys.argv[1:]
 
 # Blocks - undefined%
+# 16/16 - 2.048s 
+# this lab was kinda stupid because
+# the varying test cases basically
+# determined your score 
+# *
+# on one run you could have 77s 
+# on another you could have a timeout
+# and on another you could have like 1s 
+# *
+# thankfully i got 2s so idc anymore
 
 def main():
     global cx,cy
@@ -14,119 +24,12 @@ def main():
     if combined_area > cx*cy:
         print("No solution")
     
-    first_row = frow(raw_blocks)
-    
-    if len(first_row) == 0:
-        container = ["."]*(cx*cy)
-        solution = jbf(container, 0, raw_blocks, [])
-        if solution:
-            print(f"Decomposition: {solution}")
-        else:
-            print("No solution")
+    container = ["."]*(cx*cy)
+    solution = jbf(container, 0, raw_blocks, [])
+    if solution:
+        print(f"Decomposition: {solution}")
     else:
-        ret = ""
-
-        for blocks in first_row:
-            container = ["."]*(cx*cy)
-            rbcpy = [r for r in raw_blocks]
-            fb = blocks[0]
-
-            place(container, 0, fb)
-            rbcpy.remove(fb)
-            if fb[0] != fb[1]:
-                rbcpy.remove((fb[1], fb[0]))
-
-            if len(blocks) == 1:
-                tile = cx*fb[0]
-                solution = jbf(container, tile, rbcpy, [fb])
-            elif len(blocks) == 2:
-                sb = blocks[1]
-                solarr = [fb,sb]
-
-                place(container, fb[1], sb)
-                rbcpy.remove(sb)
-                if sb[0] != sb[1]:
-                    rbcpy.remove((sb[1], sb[0]))
-
-                minheight = min(solarr, key=lambda bk: bk[0])                
-                tile = 0
-                if fb[0] > sb[0]:
-                    tile = cx*(minheight[0])+fb[1]
-                elif fb[0] == minheight[0]:
-                    tile = cx*minheight[0]
-
-                solution = jbf(container, tile, rbcpy, solarr)
-            elif len(blocks) == 3:
-                sb = blocks[1]
-                tb = blocks[2]
-                solarr = [fb,sb,tb]
-
-                place(container, fb[1], sb)
-                rbcpy.remove(sb)
-                if sb[0] != sb[1]:
-                    rbcpy.remove((sb[1], sb[0]))
-
-                place(container, fb[1]+sb[1], tb)
-                rbcpy.remove(tb)
-                if tb[0] != tb[1]:
-                    rbcpy.remove((tb[1], tb[0]))
-                
-                minheight = min(solarr, key=lambda bk: bk[0])                
-                tile = 0
-                if fb[0] > sb[0]:
-                    tile = cx*(minheight[0])+fb[1]
-                elif fb[0] == sb[0] and fb[0] > tb[0]:
-                    tile = cx*(minheight[0])+fb[1]+sb[1]
-                elif fb[0] == minheight[0]:
-                    tile = cx*minheight[0]
-
-                solution = jbf(container, tile, rbcpy, solarr)
-            else:
-                sb = blocks[1]
-                tb = blocks[2]
-                fob = blocks[3]
-                solarr = [fb,sb,tb,fob]
-
-                place(container, fb[1], sb)
-                rbcpy.remove(sb)
-                if sb[0] != sb[1]:
-                    rbcpy.remove((sb[1], sb[0]))
-
-                place(container, fb[1]+sb[1], tb)
-                rbcpy.remove(tb)
-                if tb[0] != tb[1]:
-                    rbcpy.remove((tb[1], tb[0]))
-                
-                place(container, fb[1]+sb[1]+tb[1], fob)
-                rbcpy.remove(fob)
-                if fob[0] != fob[1]:
-                    rbcpy.remove((fob[1], fob[0]))
-
-                minheight = min(solarr, key=lambda bk: bk[0])                
-                tile = 0
-                if fb[0] > sb[0]:
-                    tile = cx*(minheight[0])+fb[1]
-                elif fb[0] == sb[0] and fb[0] > tb[0]:
-                    tile = cx*(minheight[0])+fb[1]+sb[1]
-                elif fb[0] == sb[0] and fb[0] == tb[0] and fb[0] > fob[0]:
-                    tile = cx*(minheight[0])+fb[1]+sb[1]+fob[1]
-                elif fb[0] == minheight[0]:
-                    tile = cx*minheight[0]
-
-                solution = jbf(container, tile, rbcpy, solarr)
-            if solution:
-                ret = f"Decomposition: {solution}"
-                break
-            else:
-                # keep going in case there is a solution
-                ret = "No solution"
-
-        print(ret)    
-    # solution = jbf(container, 0, raw_blocks, [])
-    # if solution:
-    #     print(f"Decomposition: {solution}")
-    # else:
-    #     print("No solution")
+        print("No solution")
     
 def jbf(container, tile, raw_blocks, sol):
     if solved(container): return sol
@@ -180,68 +83,6 @@ def place(container, tile, choice):
     for k in range(1, y+1):
         for i in range(tile+(cx*(k-1)), tile+(cx*(k-1))+x):
             container[i] = choice
-
-def frow(raw_blocks):
-    valid_blocks = []
-    sorted_blocks = sorted(raw_blocks, key=lambda bk: bk[0]*bk[1], reverse=True)
-
-    for i in range(len(sorted_blocks)):
-        first = sorted_blocks[i]
-
-        if first[1] == cx:
-            valid_blocks.append(((first),))
-        else:
-            for j in range(i+1, len(sorted_blocks)):
-                second = sorted_blocks[j]
-                
-                if first[1] + second[1] == cx:
-                    if first[0] == second[1] and first[1] == second[0]:
-                        continue
-                    if first[0] > cy or second[0] > cy:
-                        continue
-                    
-                    valid_blocks.append((first, second))
-                else:
-                    duosum = first[1]+second[1]
-                    if cx-duosum <= 0: continue
-
-                    for k in range(j+1, len(sorted_blocks)):
-                        third = sorted_blocks[k]
-                        
-                        if cx-duosum == third[1]:
-                            if first[0] == second[1] and first[1] == second[0] or \
-                                first[0] == third[1] and first[1] == third[0] or \
-                                second[0] == third[1] and second[1] == third[0]:
-                                continue
-                            if first[0] > cy or second[0] > cy or third[0] > cy:
-                                continue
-                            if (first, second, third) in valid_blocks:
-                                continue
-                            valid_blocks.append((first, second, third))
-                        else:
-                            trisum = first[1]+second[1]+third[1]
-                            if cx-trisum <= 0: continue
-                            
-                            for m in range(k+1, len(sorted_blocks)):
-                                fourth = sorted_blocks[m]
-
-                                if cx-trisum == fourth[1]:
-                                    if first[0] == second[1] and first[1] == second[0] or \
-                                        first[0] == third[1] and first[1] == third[0] or \
-                                        second[0] == third[1] and second[1] == third[0] or \
-                                        first[0] == fourth[1] and first[1] == fourth[0] or \
-                                        second[0] == fourth[1] and second[1] == fourth[0] or \
-                                        third[0] == fourth[1] and third[1] and fourth[0]:
-                                        continue
-                                    if first[0] > cy or second[0] > cy or third[0] > cy or fourth[0] > cy:
-                                        continue
-                                    if (first, second, third, fourth) in valid_blocks:
-                                        continue
-                                    valid_blocks.append((first, second, third, fourth))
-
-    valid_blocks.sort(key=lambda bk: len(bk), reverse=True)
-
-    return valid_blocks
 
 def normalize_blocks(raw_blocks):
     carea = 0
