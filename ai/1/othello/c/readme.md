@@ -1,1 +1,0 @@
-# Othello C - Soon
