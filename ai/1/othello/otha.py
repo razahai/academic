@@ -27,29 +27,38 @@ def main():
     sequence(board, plr, moves, tokens)
 
 def sequence(board, plr, moves, tokens):
+    # print starting state first since that requires no moves
     starting_moves = possible_moves(board, plr)
-
     possible_board = board
     for move in starting_moves:
         possible_board = possible_board[:move] + "*" + possible_board[move+1:]
 
-    snapshot(board, possible_board, tokens, starting_moves)
-    print(f"Possible moves for {plr}: {', '.join(str(move) for move in starting_moves)}")
-    print()
+    snapshot(board, possible_board, tokens, starting_moves, plr)
     
     for move in moves:
         if move < 0:
+            # if the move is invalid i.e < 0
             continue
+        passing = False
+        other = 'x' if plr == 'o' else 'o'
+        current_moves = possible_moves(board, plr)
+
+        if not current_moves:
+            # try other plr
+            current_moves = possible_moves(board, other)
+            # swap plr and other
+            temp = plr
+            plr = other
+            other = temp
+        
         new_board, num_removed = play(board, plr, move)
         
         if plr == "x":
             tokens = (tokens[0]+num_removed+1, tokens[1]-num_removed)
         else:
             tokens = (tokens[0]-num_removed, tokens[1]+num_removed+1)
-        other = "x" if plr == "o" else "o"
         
         next_moves = possible_moves(new_board, other)
-        passing = False
         if not next_moves:
             # passing
             passing = True
@@ -58,12 +67,15 @@ def sequence(board, plr, moves, tokens):
         for nmove in next_moves:
             possible_board = possible_board[:nmove] + "*" + possible_board[nmove+1:]
         
-        board = new_board 
-        snapshot(board, possible_board, tokens, next_moves, plr, move)
-        print()
-        if not passing:
-            plr = other
+        board = new_board
 
+        if passing:
+            # other plr doesn't have moves so stay as current plr 
+            snapshot(board, possible_board, tokens, next_moves, plr, plr, move)
+        else:
+            # if the other plr still has moves, swap
+            snapshot(board, possible_board, tokens, next_moves, other, plr, move)
+            plr = other
 
 def play(board, plr, move):
     num_removed = 0 
@@ -82,8 +94,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i+1] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
 
@@ -99,8 +109,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i-1] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
 
@@ -116,8 +124,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i+8] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
     
@@ -133,8 +139,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i-8] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
     
@@ -150,8 +154,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i+8+1] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
     
@@ -167,8 +169,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i-8-1] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
     
@@ -184,8 +184,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i-8+1] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
 
@@ -201,8 +199,6 @@ def play(board, plr, move):
                 break
         if i < 64 and i >= 0:
             if board[i] == plr and board[i+8-1] == other:
-                # for tile in to_replace:
-                #     board = board[:tile] + plr + board[tile+1:]
                 complete_to_replace.extend(to_replace)
                 num_removed += len(to_replace)
 
@@ -326,13 +322,13 @@ def possible_moves(board, plr):
     return moves
         
 
-def snapshot(board, possible_board, tokens, possible_moves, plr="NO_PLR", move="NO_MOVE"):
+def snapshot(board, possible_board, tokens, possible_moves, next_plr, plr="NO_PLR", move="NO_MOVE"):
     if move != "NO_MOVE":
-        print(f"{plr} plays to {move}")
+        print(f"{plr[0]} plays to {move}")
     display(possible_board)
     print(f"{board} {tokens[0]}/{tokens[1]}")
-    if plr != "NO_PLR":
-        print(f"Possible moves for {'x' if plr == 'o' else 'o'}: {', '.join(str(move) for move in possible_moves)}")
+    print(f"Possible moves for {next_plr}: {', '.join(str(move) for move in possible_moves)}")
+    print()
 
 def display(board):
     formatted = ""
