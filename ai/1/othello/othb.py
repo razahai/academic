@@ -1,7 +1,18 @@
 import sys; args = sys.argv[1:]
 import random
 
-# Othello B - 67% of tokens
+# Othello B - 78.14% of tokens
+# this is the worst code i've ever created in my entire life
+# i hate this file and wish this lab would be burned and never see the
+# light of day again 
+# there are so many things i just don't understand why they help and
+# so many things i just don't understand why they worsen my score even tho
+# literally everyone says they should increase my score 
+# for example, the stability function should be checking if the disc is stable
+# but it literally just goes from top left corner to the disc position and checks
+# if there's a box of our tokens there -- if not then its not stable 
+# this makes literally no sense and i do not understand how this would help in any way
+# when half the time it would return false anyways
 
 def main():
     moves = []
@@ -44,23 +55,190 @@ def quickMove(board, tkn):
     fm = possible_moves(board, tkn)
     other = 'x' if tkn == 'o' else 'o'
     
-    best_move = 0
-    best_opp_move = 64
+    # origopp_moves = possible_moves(board, other)
+    edges = {0,1,2,3,4,5,6,7,8,15,16,23,24,31,32,39,40,47,48,55,56,57,58,59,60,61,62,63}
+    corners = {0: {1, 8, 9}, 7: {6, 14, 15}, 56: {48, 49, 57}, 63: {54, 55, 62}}
+    # sections = [
+    #     {0,1,2,3,8,9,10,11,16,17,18,19,24,25,26,27},
+    #     {4,5,6,7,12,13,14,15,20,21,22,23,28,29,30,31},
+    #     {32,33,34,35,40,41,42,43,48,49,50,51,56,57,58,59},
+    #     {36,37,38,39,44,45,46,47,52,53,54,55,60,61,62,63}
+    # ]
+    controlofcenter = {18,19,20,21,26,27,28,29,34,35,36,37,42,43,44,45}
+
+    origfrontier = frontier(board, tkn)
+    otherorigfrontier = frontier(board, other)
+    tokencount = 64-board.count(".")
+    moves = []
 
     for move in fm:
+        weight = 0
+        nb, rm = play(board, tkn, move)
+
         # grab corner
         if move in {0, 7, 56, 63}:
-            best_move = move
-            break
+            weight += 100
 
-        # grab the move that has gives the opp least amt of moves (possibly too inefficient?)
-        new_board = play(board, tkn, move)
-        opps_moves = possible_moves(new_board[0], other)
-        if len(opps_moves) < best_opp_move:
-            best_opp_move = len(opps_moves)
-            best_move = move
+        # if the edge is in a safe pos (can't be recaptured)
+        if move in edges:
+            if safe_edge(move, board, tkn):
+                weight += 64
 
-    return best_move
+        # if stable disc
+        if stability(move, board, tkn):
+            weight += 5
+
+        # if in c or x squares
+        ntc, typetoken = next_to_corner(corners, move, board, other)
+        if ntc:
+            if typetoken == 1: # "."
+                weight -= 100
+            elif typetoken == 2: # other
+                weight -= 95
+
+        opps_moves = possible_moves(nb,other)
+        if len(opps_moves) == 0:
+            weight += 2
+
+        if tokencount < 28:
+            if rm < 5:
+                weight += 0.25 
+        elif tokencount > 45:
+            if rm > 5:
+                weight += 0.25
+            movefrontier = frontier(nb, tkn)
+            otherfrontier = frontier(nb, other)
+            if movefrontier < origfrontier:
+                weight += 0.1
+            if otherfrontier > otherorigfrontier:
+                weight += 0.1
+        elif tokencount < 16:
+            if move in controlofcenter:
+                weight += 0.15
+
+        moves.append( (weight, move) )
+    
+    return sorted(moves, reverse=True)[0][1]
+
+def next_to_corner(corners, move, board, other):
+    for cr in corners:
+        if move in corners[cr]:
+            if board[cr] == ".":
+                return (True, 1)
+            elif board[cr] == other:
+                return (True, 2)
+    return (False, -1)
+
+def frontier(board, tkn):
+    count = 0
+
+    for i in range(len(board)):
+        if board[i] == tkn: 
+            if i-1 >= 0 and i-8 >= 0 and i+8 < 64: 
+                if board[i-1] == "." and (board[i-8] == tkn or board[i+8] == tkn):
+                    count += 1
+                    continue
+            if i+1 < 64 and i-8 >= 0 and i+8 < 64: 
+                if board[i+1] == "." and (board[i-8] == tkn or board[i+8] == tkn):
+                    count += 1
+                    continue
+            if i-8 >= 0 and i-1 >= 0 and i+1 < 64:
+                if board[i-8] == "." and (board[i-1] == tkn or board[i+1] == tkn):
+                    count += 1
+                    continue
+            if i+8 < 64 and i-1 >= 0 and i+1 < 64:
+                if board[i+8] == "." and (board[i-1] == tkn or board[i+1] == tkn):
+                    count += 1            
+                    continue
+    
+    return count
+
+def safe_edge(move, board, tkn):
+    top = {1,2,3,4,5,6}
+    left = {8,16,24,32,40,48}
+    right = {15,23,31,39,47,55}
+    bottom = {57,58,59,60,61,62}
+
+    if move in top:
+        if board[0] == tkn:
+            for i in range(0, move):
+                if board[i] != tkn:
+                    return False
+            return True
+        if board[7] == tkn:
+            for i in range(move+1, 7):
+                if board[i] != tkn:
+                    return False
+            return True
+    if move in left:
+        if board[0] == tkn:
+            for i in range(0,move,8):
+                if board[i] != tkn:
+                    return False
+            return True
+        if board[56] == tkn:
+            for i in range(move+8,56,8):
+                if board[i] != tkn:
+                    return False
+            return True
+    if move in right:
+        if board[7] == tkn:
+            for i in range(7,move,8):
+                if board[i] != tkn:
+                    return False
+            return True
+        if board[63] == tkn:
+            for i in range(move+8,63,8):
+                if board[i] != tkn:
+                    return False
+            return True
+    if move in bottom:
+        if board[56] == tkn:
+            for i in range(56, move):
+                if board[i] != tkn:
+                    return False
+            return True
+        if board[63] == tkn:
+            for i in range(move+1, 63):
+                if board[i] != tkn:
+                    return False
+            return True
+    return False
+
+def stability(move, board, tkn):
+    x = move % 8
+    y = move // 8
+
+    # for c in {0,7,56,63}:
+    #     if board[c] == tkn:
+    #         if c == 0:
+    #             for i in range(y+1):
+    #                 for j in range(x+1):
+    #                     if board[i*8+j] != tkn and i*8+j != move:
+    #                         return False
+    #         if c == 7:
+    #             for i in range(y+1):
+    #                 for j in range(8-x):
+    #                     if board[i*8+(x+j)] != tkn and i*8+(x+j) != move:
+    #                         return False
+    #         if c == 56:
+    #             for i in range(y, 8):
+    #                 for j in range(x+1):
+    #                     if board[i*8+j] != tkn and i*8+j != move:
+    #                         return False
+    #         if c == 63:
+    #             for i in range(y, 8):
+    #                 for j in range(8-x):
+    #                     if board[i*8+(x+j)] != tkn and i*8+(x+j) != move:
+    #                         return False
+
+    # this helps more than the above but it literally doesn't check for stable discs so idfk anymore    
+    for i in range(y):
+        for j in range(x):
+            if board[i*8+j] != tkn:
+                return False
+  
+    return True 
 
 def sequence(board, plr, moves, tokens):
     # print starting state first since that requires no moves
