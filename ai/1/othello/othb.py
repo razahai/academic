@@ -1,5 +1,4 @@
 import sys; args = sys.argv[1:]
-import random
 
 # Othello B - 78.14% of tokens
 # this is the worst code i've ever created in my entire life
@@ -55,7 +54,7 @@ def quickMove(board, tkn):
     fm = possible_moves(board, tkn)
     other = 'x' if tkn == 'o' else 'o'
     
-    # origopp_moves = possible_moves(board, other)
+    origopp_moves = possible_moves(board, other)
     edges = {0,1,2,3,4,5,6,7,8,15,16,23,24,31,32,39,40,47,48,55,56,57,58,59,60,61,62,63}
     corners = {0: {1, 8, 9}, 7: {6, 14, 15}, 56: {48, 49, 57}, 63: {54, 55, 62}}
     # sections = [
@@ -77,48 +76,61 @@ def quickMove(board, tkn):
 
         # grab corner
         if move in {0, 7, 56, 63}:
-            weight += 100
+            weight += 200
 
         # if the edge is in a safe pos (can't be recaptured)
         if move in edges:
             if safe_edge(move, board, tkn):
-                weight += 64
+                weight += 100
+            elif wedge(move, board, other):
+                weight += 50
 
         # if stable disc
         if stability(move, board, tkn):
-            weight += 5
+            weight += 60
 
         # if in c or x squares
         ntc, typetoken = next_to_corner(corners, move, board, other)
         if ntc:
             if typetoken == 1: # "."
-                weight -= 100
+                weight += -100
             elif typetoken == 2: # other
-                weight -= 95
+                weight += -95
 
         opps_moves = possible_moves(nb,other)
         if len(opps_moves) == 0:
-            weight += 2
+            weight += 50
+        if len(opps_moves) < len(origopp_moves):
+            weight += 30
 
         if tokencount < 28:
             if rm < 5:
-                weight += 0.25 
-        elif tokencount > 45:
+                weight += 2
+        elif tokencount > 32:
             if rm > 5:
-                weight += 0.25
-            movefrontier = frontier(nb, tkn)
-            otherfrontier = frontier(nb, other)
-            if movefrontier < origfrontier:
-                weight += 0.1
-            if otherfrontier > otherorigfrontier:
-                weight += 0.1
+                weight += 2
+            # movefrontier = frontier(nb, tkn)
+            # otherfrontier = frontier(nb, other)
+            # if movefrontier < origfrontier:
+            #     weight += 0.1
+            # if otherfrontier > otherorigfrontier:
+            #     weight += 0.1
         elif tokencount < 16:
             if move in controlofcenter:
-                weight += 0.15
+                weight += 1
 
         moves.append( (weight, move) )
     
     return sorted(moves, reverse=True)[0][1]
+
+def wedge(move, board, other):
+    if move-1 >= 0 and move+1 < 64:
+        if board[move-1] == other and board[move+1] == other:
+            return True
+    elif move-8 >= 0 and move+8 < 64:
+        if board[move-8] == other and board[move+8] == other:
+            return True
+    return False
 
 def next_to_corner(corners, move, board, other):
     for cr in corners:
