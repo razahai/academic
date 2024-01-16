@@ -1,6 +1,6 @@
 import sys; args = sys.argv[1:]
 
-# Othello B - 78.14% of tokens
+# Othello B - 78.3% of tokens
 # this is the worst code i've ever created in my entire life
 # i hate this file and wish this lab would be burned and never see the
 # light of day again 
