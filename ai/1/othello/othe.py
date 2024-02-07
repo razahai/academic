@@ -167,7 +167,13 @@ def main():
 def quickMove(board, tkn):
     if not board: global HLLIM; HLLIM = tkn; return
     tokencount = 64-board.count(".")
-    
+    prepm = q_pm(board, tkn)
+
+    for k in prepm:
+        if k in {0,7,56,63}:
+            print(f"My preferred move is {k}")
+            return k
+
     if 64-tokencount <= HLLIM:
         # negamax
         ab = alphabeta(board, tkn, -65, 65)
