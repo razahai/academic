@@ -1,6 +1,7 @@
 import sys; args = sys.argv[1:]
+import time
 
-# Othello D - Negamax w/ Alpha beta - 97.55%
+# Othello E - Midgame Alpha beta
 
 flips = {
     # index: [[right], [left], [down], [up], [leftdowndiag], [leftupdiag], [rightdowndiag], [rightupdiag]]		
@@ -70,29 +71,20 @@ flips = {
     63: [[], [62, 61, 60, 59, 58, 57, 56], [], [55, 47, 39, 31, 23, 15, 7], [], [], [], [54, 45, 36, 27, 18, 9, 0]]
 }
 HLLIM = 10
-pmCache = {}
-cache = {}
+start_time = time.perf_counter()
 
 def main():
-    global HLLIM 
-
+    global HLLIM
+    
     moves = []
     board = "...........................ox......xo..........................."
     plr = ""
-    suppression = False
-    verbose = False
-
+    
     for arg in args:
-        if len(arg) == 64 and "." in arg and "x" in arg and "o" in arg:
+        if len(arg) == 64 and "x" in arg:
             board = arg.lower()
         elif arg.lower() == "x" or arg.lower() == "o":
             plr = arg.lower()
-        elif arg.lower() == "s":
-            suppression = True
-        elif arg.lower() == "v":
-            verbose = True
-        elif len(arg) > 2 and arg[0].lower() == "h" and arg[1].lower() == "l":
-            HLLIM = int(arg[2:])
         elif len(arg) > 1 and ("_" in arg or "-" in arg or (len(arg) > 2 and int(arg))):
             transcript = arg
             for i in range(0, len(transcript), 2):
@@ -105,20 +97,72 @@ def main():
                 arg = (int(arg[1])-1)*8+(ord(arg[0].lower())-97)
             moves.append(int(arg))
     
-    
-    tokens = (board.count("x"), board.count("o"))
+    tokens = [board.count("x"), board.count("o")]
     if not plr:
         if (tokens[0]+tokens[1])%2 == 0:
             plr = "x"
         else:
             plr = "o"
 
-    suppressed = False
+    qmp = False
+    sm = q_pm(board, plr, False)
+    if not sm:
+        plr = "x" if plr == "o" else "o"
+        sm = q_pm(board, plr, False)
+    
+    pb = board
+    for move in sm:
+        pb = pb[:move] + "*" + pb[move+1:]
+    
+    snapshot(board, pb, tokens, sm, plr)
 
-    if suppression or not verbose:
-        suppressed = True
+    for idx,move in enumerate(moves):
+        if move < 0:
+            continue
+        passing = False
+        other = "x" if plr == "o" else "o"
+        cm, rplmnts = q_pm(board, plr)
+        
+        if not cm:
+            cm, rplmnts = q_pm(board, other)
+            temp = plr
+            plr = other
+            other = temp
+        
+        nb = q_play(board, plr, move, rplmnts)
+        if plr == "x":
+            tokens[0] += len(set(rplmnts[move]))+1
+            tokens[1] -= len(set(rplmnts[move]))
+        else:
+            tokens[0] -= len(set(rplmnts[move]))
+            tokens[1] += len(set(rplmnts[move]))+1
 
-    sequence(board, plr, moves, tokens, suppressed)
+        nextm = q_pm(nb, other, False)
+        if not nextm:
+            passing = True
+            nextm = q_pm(nb, plr, False)
+        pb = nb
+        for nmv in nextm:
+            pb = pb[:nmv] + "*" + pb[nmv+1:]
+        
+        board = nb
+
+        if passing:
+            if idx == len(moves)-1:
+                snapshot(board, pb, tokens, nextm, plr, plr, move)
+        else:
+            if idx == len(moves)-1:
+                snapshot(board, pb, tokens, nextm, other, plr, move) 
+            plr = other
+        
+        if idx == len(moves)-1:
+            print(f"My preferred move is {rothumb(board, plr, 64-board.count('.'))}")
+            print(f"My preferred move is {quickMove(board, plr)}")
+            qmp = True
+    
+    if not qmp:
+        print(f"My preferred move is {rothumb(board, plr, 64-board.count('.'))}")
+        print(f"My preferred move is {quickMove(board, plr)}")
 
 def quickMove(board, tkn):
     if not board: global HLLIM; HLLIM = tkn; return
@@ -129,6 +173,26 @@ def quickMove(board, tkn):
         ab = alphabeta(board, tkn, -65, 65)
         print(f"Min score: {ab[0]}; move sequence: {ab[1:]}")
         return ab[-1]
+    elif 64-tokencount > HLLIM and tokencount > 8:
+        midgame = abmidgame(board, tkn, -2305, 2305, 6)
+        print(f"Min score: {midgame[0]}; move sequence: {midgame[1:]}")
+        return midgame[-1]
+        # if tokencount < 25:
+        #     midgame = abmidgame(board, tkn, -65, 65, 6)
+        #     print(f"Min score: {midgame[0]}; move sequence: {midgame[1:]}")
+        #     return midgame[-1]
+        # elif tokencount < 32:
+        #     midgame = abmidgame(board, tkn, -65, 65, 5)
+        #     print(f"Min score: {midgame[0]}; move sequence: {midgame[1:]}")
+        #     return midgame[-1]
+        # else:
+        #     midgame = abmidgame(board, tkn, -65, 65, 4)
+        #     print(f"Min score: {midgame[0]}; move sequence: {midgame[1:]}")
+        #     return midgame[-1]
+        # else:
+        #     midgame = abmidgame(board, tkn, -65, 65, 3)
+        #     print(f"Min score: {midgame[0]}; move sequence: {midgame[1:]}")
+        #     return midgame[-1]
     else:
         return rothumb(board, tkn, tokencount)
 
@@ -136,13 +200,13 @@ def alphabeta(brd, tkn, lower, upper):
     mymoves, myrplmnts = q_pm(brd, tkn)
     enemy = "x" if tkn == "o" else "o"
     if len(mymoves) == 0:
-        hermoves, _ = q_pm(brd, enemy)
-        if len(hermoves) == 0:
+        if len(q_pm(brd, enemy, False)) == 0:
             return [brd.count(tkn)-brd.count(enemy)]
         ab = alphabeta(brd, enemy, -upper, -lower)
         return [-ab[0]]+ab[1:]+[-1]
 
     bestSoFar = [lower-1]
+    mymoves = ordering(mymoves, myrplmnts, brd, tkn)
     for mv in mymoves:
         ab = alphabeta(q_play(brd, tkn, mv, myrplmnts), enemy, -upper, -lower)
         score = -ab[0]
@@ -150,22 +214,57 @@ def alphabeta(brd, tkn, lower, upper):
         if score > upper: return [score]
         bestSoFar = [score]+ab[1:]+[mv]
         lower = score+1
-        print(f"Min score: {bestSoFar[0]}; move sequence: {bestSoFar[1:]}")
+        # print(f"Min score: {bestSoFar[0]}; move sequence: {bestSoFar[1:]}")
     
     return bestSoFar
 
-def ordering(moves, board, tkn):
+def abmidgame(brd, tkn, lower, upper, level):
+    if (time.perf_counter()-start_time) >= 0.275:
+        return [bdeval(brd,tkn)]
+    mymoves, myrplmnts = q_pm(brd, tkn)
+    enemy = "x" if tkn == "o" else "o"
+    if level == 0:
+        return [bdeval(brd, tkn)]
+    if len(mymoves) == 0:
+        if len(q_pm(brd, enemy, False)) == 0:
+            return [(brd.count(tkn)-brd.count(enemy))*36]
+        ab = abmidgame(brd, enemy, -upper, -lower, level-1)
+        return [-ab[0]]+ab[1:]+[-1]
+
+    mymoves = ordering(mymoves, myrplmnts, brd, tkn)
+    bestSoFar = [lower-1]
+    for mv in mymoves:
+        ab = abmidgame(q_play(brd, tkn, mv, myrplmnts), enemy, -upper, -lower, level-1)
+        score = -ab[0]
+        if score < lower: continue
+        if score > upper: return [score]
+        bestSoFar = [score]+ab[1:]+[mv]
+        lower = score+1
+        # print(f"Min score: {bestSoFar[0]}; move sequence: {bestSoFar[1:]}")
+    
+    return bestSoFar
+
+def bdeval(bd, tkn):
+    w = 3
+    other = "o" if tkn == "x" else "x"
+    mycorners = sum(1 for i in {0,7,56,63} if bd[i]==tkn)
+    hercorners = sum(1 for i in {0,7,56,63} if bd[i]==other)
+    mysedges = sum(1 for i in {1,2,3,4,5,6,8,16,24,32,40,48,15,23,31,39,47,55,57,58,59,60,61,62} if safe_edge(i,bd,tkn))
+    hersedges = sum(1 for i in {1,2,3,4,5,6,8,16,24,32,40,48,15,23,31,39,47,55,57,58,59,60,61,62} if safe_edge(i,bd,other))
+    return w*(mycorners-hercorners)+(mysedges-hersedges)
+
+def ordering(fm, rm, board, tkn):
     other = 'x' if tkn == 'o' else 'o'
     
-    origopp_moves, _ = q_pm(board, other)
+    origopp_moves = q_pm(board, other, False)
     edges = {0,1,2,3,4,5,6,7,8,15,16,23,24,31,32,39,40,47,48,55,56,57,58,59,60,61,62,63}
     corners = {0: {1, 8, 9}, 7: {6, 14, 15}, 56: {48, 49, 57}, 63: {54, 55, 62}}
+    
+    moves = []
 
-    smoves = []
-
-    for move in moves:
+    for move in fm:
         weight = 0
-        nb = q_play(board, tkn, move)
+        nb = q_play(board, tkn, move, rm)
 
         # grab corner
         if move in {0, 7, 56, 63}:
@@ -190,20 +289,17 @@ def ordering(moves, board, tkn):
             elif typetoken == 2: # other
                 weight += -95
 
-        opps_moves, _ = q_pm(nb,other)
+        opps_moves = q_pm(nb, other, False)
         if len(opps_moves) == 0:
-            weight += 50
+            weight += 65
         if len(opps_moves) < len(origopp_moves):
-            weight += 30
+            weight += 25
 
-        smoves.append( (weight, move) )
+        moves.append( (weight, move) )
     
-    return [move[1] for move in sorted(smoves, reverse=True)]
-
+    return [move[1] for move in sorted(moves, reverse=True)]
+    
 def negamax(brd, tkn):
-    if brd+tkn in cache:
-        return cache[brd+tkn]["nm"]
-
     mymoves, myrplmnts = q_pm(brd, tkn)
     enemy = "x" if tkn == "o" else "o"
     if len(mymoves) == 0:
@@ -221,17 +317,13 @@ def negamax(brd, tkn):
         if -nm[0] > bestSoFar[0]:
             bestSoFar = [-nm[0]]+nm[1:]+[mv]
     
-    cache[brd+tkn] = {
-        "nm": bestSoFar
-    }
-
     return bestSoFar
 
 def rothumb(board, tkn, tokencount):
-    fm = possible_moves(board, tkn)
+    fm, rm = q_pm(board, tkn)
     other = 'x' if tkn == 'o' else 'o'
     
-    origopp_moves = possible_moves(board, other)
+    origopp_moves = q_pm(board, other, False)
     edges = {0,1,2,3,4,5,6,7,8,15,16,23,24,31,32,39,40,47,48,55,56,57,58,59,60,61,62,63}
     corners = {0: {1, 8, 9}, 7: {6, 14, 15}, 56: {48, 49, 57}, 63: {54, 55, 62}}
     controlofcenter = {18,19,20,21,26,27,28,29,34,35,36,37,42,43,44,45}
@@ -240,7 +332,8 @@ def rothumb(board, tkn, tokencount):
 
     for move in fm:
         weight = 0
-        nb, rm = play(board, tkn, move)
+        nb = q_play(board, tkn, move, rm)
+        rm2 = set(rm[move])
 
         # grab corner
         if move in {0, 7, 56, 63}:
@@ -265,17 +358,17 @@ def rothumb(board, tkn, tokencount):
             elif typetoken == 2: # other
                 weight += -95
 
-        opps_moves = possible_moves(nb,other)
+        opps_moves = q_pm(nb, other, False)
         if len(opps_moves) == 0:
-            weight += 50
+            weight += 65
         if len(opps_moves) < len(origopp_moves):
-            weight += 30
+            weight += 25
 
         if tokencount < 28:
-            if rm < 5:
+            if len(rm2) < 5:
                 weight += 2
         elif tokencount > 32:
-            if rm > 5:
+            if len(rm2) > 5:
                 weight += 2
         elif tokencount < 16:
             if move in controlofcenter:
@@ -283,13 +376,9 @@ def rothumb(board, tkn, tokencount):
 
         moves.append( (weight, move) )
     
-    if moves:
-        return sorted(moves, reverse=True)[0][1]
-    return -1
+    return sorted(moves, reverse=True)[0][1]
 
-def q_pm(brd, tkn):
-    if brd+tkn in pmCache:
-        return pmCache[brd+tkn]
+def q_pm(brd, tkn, rpn=True):
     moves = set()
     rplmnt = {}
     other = "x" if tkn == "o" else "o"
@@ -304,10 +393,11 @@ def q_pm(brd, tkn):
                         if j == 0 and brd[nbr] == ".": break
                         if brd[nbr] == "." and brd[direction[j-1]] == other:
                             moves.add(nbr)
-                            if nbr in rplmnt:
-                                rplmnt[nbr].extend(direction[:j+1])
-                            else:
-                                rplmnt[nbr] = direction[:j+1]
+                            if rpn:
+                                if nbr in rplmnt:
+                                    rplmnt[nbr].extend(direction[:j+1])
+                                else:
+                                    rplmnt[nbr] = direction[:j+1]
                             break
     else:
         for i in range(64):
@@ -318,17 +408,20 @@ def q_pm(brd, tkn):
                         if j == 0 and brd[nbr] == tkn: break
                         if brd[nbr] == tkn and brd[direction[j-1]] == other:
                             moves.add(i)
-                            if i in rplmnt:
-                                rplmnt[i].extend(direction[:j])
-                            else:
-                                rplmnt[i] = direction[:j]
+                            if rpn:
+                                if i in rplmnt:
+                                    rplmnt[i].extend(direction[:j])
+                                else:
+                                    rplmnt[i] = direction[:j]
                             break
-
-    pmCache[brd+tkn] = (moves,rplmnt)                          
-    return (moves, rplmnt)
+    
+    if rpn:
+        return (moves, rplmnt)
+    else:
+        return moves
 
 def q_play(board, plr, move, replacements):
-    for i in replacements[move]:
+    for i in set(replacements[move]):
         board = board[:i] + plr + board[i+1:]
     board = board[:move] + plr + board[move+1:]
     return "".join(board)
@@ -376,6 +469,7 @@ def frontier(board, tkn):
     return count
 
 def safe_edge(move, board, tkn):
+    other = "x" if tkn == "o" else "o"
     top = {1,2,3,4,5,6}
     left = {8,16,24,32,40,48}
     right = {15,23,31,39,47,55}
@@ -384,377 +478,149 @@ def safe_edge(move, board, tkn):
     if move in top:
         if board[0] == tkn:
             for i in range(0, move):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
         if board[7] == tkn:
             for i in range(move+1, 7):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
     if move in left:
         if board[0] == tkn:
             for i in range(0,move,8):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
         if board[56] == tkn:
             for i in range(move+8,56,8):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
     if move in right:
         if board[7] == tkn:
             for i in range(7,move,8):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
         if board[63] == tkn:
             for i in range(move+8,63,8):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
     if move in bottom:
         if board[56] == tkn:
             for i in range(56, move):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
         if board[63] == tkn:
             for i in range(move+1, 63):
-                if board[i] != tkn:
+                if board[i] == tkn:
+                    continue
+                if board[i] == other:
+                    continue
+                if board[i] == " ":
                     return False
             return True
     return False
 
 def stability(move, board, tkn):
-    x = move % 8
-    y = move // 8
+    other = "x" if tkn == "o" else "o"
+    
+    cornerExists = False
+    for i in {0,7,56,63}:
+        if board[i] == tkn:
+            cornerExists = True
+            break
+    if not cornerExists:
+        return False
 
-    # this helps more than the above but it literally doesn't check for stable discs so idfk anymore    
-    for i in range(y):
-        for j in range(x):
-            if board[i*8+j] != tkn:
-                return False
-  
-    return True 
+    protected = True
+    for i in range(0, len(flips[move]), 2):
+        p1 = flips[move][i]
+        p1_hitsBorder = False
+        p1_hitsOpposingDisc = False
 
-def sequence(board, plr, moves, tokens, suppressed):
-    # print starting state first since that requires no moves
-    starting_moves = possible_moves(board, plr)
-    qm = quickMove(board, plr)
-    qmPrinted = False
+        p2 = flips[move][i+1]
+        p2_hitsBorder = False
+        p2_hitsOpposingDisc = False
 
-    if not starting_moves:
-        # swap
-        plr = 'x' if plr == 'o' else 'o'
-        starting_moves = possible_moves(board, plr)
+        for i,n in enumerate(p1):
+            if board[n] == tkn and i == len(p1)-1:
+                p1_hitsBorder = True
+                break
+            if board[n] == " ":
+                p2_hitsBorder = False
+                p2_hitsOpposingDisc = False
+                break
+            if i-1 >= 0:
+                if board[n] == other and board[p1[i-1]] == tkn:
+                    p1_hitsOpposingDisc = True
+                    break
+            else:
+                if board[n] == other:
+                    p1_hitsOpposingDisc = True
+                    break
 
-    possible_board = board
-    for move in starting_moves:
-        possible_board = possible_board[:move] + "*" + possible_board[move+1:]
+        for i,n in enumerate(p2):
+            if board[n] == tkn and i == len(p2)-1:
+                p2_hitsBorder = True
+                break
+            if board[n] == " ":
+                p2_hitsBorder = False
+                p2_hitsOpposingDisc = False
+                break
+            if i-1 >= 0:
+                if board[n] == other and board[p2[i-1]] == tkn:
+                    p2_hitsOpposingDisc = True
+                    break
+            else:
+                if board[n] == other:
+                    p2_hitsOpposingDisc = True
+                    break
 
-    snapshot(board, possible_board, tokens, starting_moves, plr)
-
-    for idx,move in enumerate(moves):
-        if move < 0:
-            # if the move is invalid i.e < 0
-            continue
-        passing = False
-        other = 'x' if plr == 'o' else 'o'
-        current_moves = possible_moves(board, plr)
-
-        if not current_moves:
-            # try other plr
-            current_moves = possible_moves(board, other)
-            # swap plr and other
-            temp = plr
-            plr = other
-            other = temp
-        
-        new_board, num_removed = play(board, plr, move)
-        
-        if plr == "x":
-            tokens = (tokens[0]+num_removed+1, tokens[1]-num_removed)
+        if p1_hitsBorder or p2_hitsBorder:
+            protected = True
         else:
-            tokens = (tokens[0]-num_removed, tokens[1]+num_removed+1)
-        
-        next_moves = possible_moves(new_board, other)
-        if not next_moves:
-            # passing
-            passing = True
-            next_moves = possible_moves(new_board, plr)
-        possible_board = new_board
-        for nmove in next_moves:
-            possible_board = possible_board[:nmove] + "*" + possible_board[nmove+1:]
-        
-        board = new_board
+            protected = False
+            break
 
-        if passing:
-            # other plr doesn't have moves so stay as current plr 
-            if (not suppressed) or (suppressed and idx == len(moves)-1):
-                snapshot(board, possible_board, tokens, next_moves, plr, plr, move)
+        if p1_hitsOpposingDisc and p2_hitsOpposingDisc:
+            protected = True
         else:
-            # if the other plr still has moves, swap
-            if (not suppressed) or (suppressed and idx == len(moves)-1):
-                snapshot(board, possible_board, tokens, next_moves, other, plr, move)
-            plr = other
+            protected = False
+            break
         
-        if idx == len(moves)-1:
-            print(f"My preferred move is {qm}")
-            if board.count(".") <= HLLIM:
-                ab = alphabeta(board, plr, -65, 65)
-                print(f"Min score: {ab[0]}; move sequence: {ab[1:]}")
-            qmPrinted = True
-    
-    if not qmPrinted:
-        print(f"My preferred move is {qm}")
-            
-def play(board, plr, move):
-    num_removed = 0 
-    other = "x" if plr == "o" else "o"
-    complete_to_replace = []
-
-    i = move-1
-    if i // 8 == move // 8 and i >= 0:
-        to_replace = []
-    
-        while board[i] == other:
-            to_replace.append(i)
-            i -= 1
-            if i // 8 != move // 8:
-                i+=1
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i+1] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-
-    i = move+1
-    if i // 8 == move // 8 and i < 64:
-        to_replace = []
-    
-        while board[i] == other:
-            to_replace.append(i)
-            i += 1
-            if i // 8 != move // 8:
-                i-=1
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i-1] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-
-    i = move-8
-    if i >= 0:
-        to_replace = []
-    
-        while board[i] == other:
-            to_replace.append(i)
-            i -= 8
-            if i < 0:
-                i+=8
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i+8] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-    
-    i = move+8
-    if i < 64:
-        to_replace = []
-    
-        while board[i] == other:
-            to_replace.append(i)
-            i += 8
-            if i >= 64:
-                i-=8
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i-8] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-    
-    i = move-8-1
-    if i >= 0:
-        to_replace = []
-    
-        while board[i] == other:
-            to_replace.append(i)
-            i = i-8-1
-            if i < 0 or move % 8 < i % 8:
-                i = i+8+1
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i+8+1] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-    
-    i = move+8+1
-    if i < 64:
-        to_replace = []
-    
-        while board[i] == other:
-            to_replace.append(i)
-            i = i+8+1
-            if i >= 64 or move % 8 > i % 8:
-                i = i-8-1
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i-8-1] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-    
-    i = move+8-1
-    if i >= 0 and i < 64:
-        to_replace = []
-        
-        while board[i] == other:
-            to_replace.append(i)
-            i = i+8-1
-            if i < 0 or i >= 64 or move % 8 < i % 8:
-                i = i-8+1
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i-8+1] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-
-    i = move-8+1
-    if i >= 0 and i < 64:
-        to_replace = []
-        
-        while board[i] == other:
-            to_replace.append(i)
-            i = i-8+1
-            if i < 0 or i >= 64 or move % 8 > i % 8:
-                i = i+8-1
-                break
-        if i < 64 and i >= 0:
-            if board[i] == plr and board[i+8-1] == other:
-                complete_to_replace.extend(to_replace)
-                num_removed += len(to_replace)
-
-    for tile in complete_to_replace:
-        board = board[:tile] + plr + board[tile+1:]
-
-    board = board[:move] + plr + board[move+1:]
-
-    return (board, num_removed)
-
-
-def possible_moves(board, plr):
-    moves = set()
-    other = "x" if plr == "o" else "o"
-
-    for i in range(len(board)):
-        if board[i] == "." or board[i] == other: continue
-        
-        # row backward
-        j = i-1
-        bailout = False
-        if i // 8 == j // 8 and j >= 0:
-            while board[j] == other:
-                j -= 1
-                if i // 8 != j // 8:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j+1] == other and not bailout:
-                    moves.add(j)
-                    
-        # row forward
-        j = i+1
-        bailout = False
-        if i // 8 == j // 8 and j < 64:
-            while board[j] == other:
-                j += 1
-                if i // 8 != j // 8:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j-1] == other and not bailout:
-                    moves.add(j)
-                    
-        # col backward
-        j = i-8
-        bailout = False
-        if j >= 0:
-            while board[j] == other:
-                j -= 8
-                if j < 0:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j+8] == other and not bailout:
-                    moves.add(j)
-                    
-        # col foward
-        j = i+8
-        bailout = False
-        if j < 64:
-            while board[j] == other:
-                j += 8
-                if j >= 64:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j-8] == other and not bailout:
-                    moves.add(j)
-                    
-        # diag left
-        j = i-8-1 # obviously -8-1 = -9 but it's easier to understand what's happening
-        bailout = False
-        if j >= 0:
-            while board[j] == other:
-                j = j-8-1
-                if j < 0 or i % 8 < j % 8:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j+8+1] == other and not bailout:
-                    moves.add(j)
-                    
-        j = i+8-1
-        bailout = False
-        if j >= 0 and j < 64:
-            while board[j] == other:
-                j = j+8-1
-                if j-8+1 in {56,57,58,59,60,61,62,63} or j < 0 or j >= 64 or i % 8 < j % 8:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j-8+1] == other and not bailout:
-                    moves.add(j)
-                    
-        # diag right
-        j = i+8+1
-        bailout = False
-        if j < 64:
-            while board[j] == other:
-                j = j+8+1
-                if j >= 64 or i % 8 > j % 8:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j-8-1] == other and not bailout:
-                    moves.add(j)
-                    
-        # culprit
-        j = i-8+1
-        bailout = False
-        if j >= 0 and j < 64:
-            while board[j] == other:
-                j = j-8+1
-                if j+8-1 in {0,1,2,3,4,5,6,7} or j < 0 or j >= 64 or i % 8 > j % 8:
-                    bailout = True
-                    break
-            if j < 64 and j >= 0:
-                if board[j] == "." and board[j+8-1] == other and not bailout:
-                    moves.add(j)
-                    
-    return moves
-        
+    return protected
 
 def snapshot(board, possible_board, tokens, possible_moves, next_plr, plr="NO_PLR", move="NO_MOVE"):
     if move != "NO_MOVE":
