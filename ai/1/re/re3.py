@@ -20,4 +20,3 @@ regex = [
 if idx < len(regex):
     print(regex[idx])
 
-# Syed Raza Haider Period 6 2025

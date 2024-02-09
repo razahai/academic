@@ -327,4 +327,3 @@ if __name__ == "__main__":
     print(STATS)
     print(time.perf_counter()-start)
 
-# Syed Raza Haider Period 6 2025

@@ -1,7 +1,7 @@
 import sys; args = sys.argv[1:]
 import time
 
-# Othello E - Midgame Alpha beta
+# Othello E - Midgame Alpha beta - 91.4% sad
 
 flips = {
     # index: [[right], [left], [down], [up], [leftdowndiag], [leftupdiag], [rightdowndiag], [rightupdiag]]		
@@ -167,7 +167,7 @@ def main():
 def quickMove(board, tkn):
     if not board: global HLLIM; HLLIM = tkn; return
     tokencount = 64-board.count(".")
-    prepm = q_pm(board, tkn)
+    prepm = q_pm(board, tkn, False)
 
     for k in prepm:
         if k in {0,7,56,63}:
@@ -225,7 +225,7 @@ def alphabeta(brd, tkn, lower, upper):
     return bestSoFar
 
 def abmidgame(brd, tkn, lower, upper, level):
-    if (time.perf_counter()-start_time) >= 0.275:
+    if (time.perf_counter()-start_time) >= 0.28:
         return [bdeval(brd,tkn)]
     mymoves, myrplmnts = q_pm(brd, tkn)
     enemy = "x" if tkn == "o" else "o"
@@ -580,6 +580,11 @@ def stability(move, board, tkn):
         p2_hitsBorder = False
         p2_hitsOpposingDisc = False
 
+        if len(p1) == 0:
+            p1_hitsBorder = True
+        if len(p2) == 0:
+            p2_hitsBorder = True
+
         for i,n in enumerate(p1):
             if board[n] == tkn and i == len(p1)-1:
                 p1_hitsBorder = True
@@ -614,13 +619,7 @@ def stability(move, board, tkn):
                     p2_hitsOpposingDisc = True
                     break
 
-        if p1_hitsBorder or p2_hitsBorder:
-            protected = True
-        else:
-            protected = False
-            break
-
-        if p1_hitsOpposingDisc and p2_hitsOpposingDisc:
+        if (p1_hitsBorder or p2_hitsBorder) or (p1_hitsOpposingDisc and p2_hitsOpposingDisc):
             protected = True
         else:
             protected = False
