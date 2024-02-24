@@ -1,3 +1,3 @@
-# AI 2 :warning:
+# AI 2
 
-AI 2 is next semester (around Jan. 18, 2024) 
+Although Othello 6-7 are in AI 1, they were completed in AI 2.
