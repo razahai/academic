@@ -1,17 +1,9 @@
 import sys; args = sys.argv[1:]
 
 # Othello B - 78.3% of tokens
-# this is the worst code i've ever created in my entire life
-# i hate this file and wish this lab would be burned and never see the
-# light of day again 
-# there are so many things i just don't understand why they help and
-# so many things i just don't understand why they worsen my score even tho
-# literally everyone says they should increase my score 
-# for example, the stability function should be checking if the disc is stable
-# but it literally just goes from top left corner to the disc position and checks
-# if there's a box of our tokens there -- if not then its not stable 
-# this makes literally no sense and i do not understand how this would help in any way
-# when half the time it would return false anyways
+# UPD: i still don't understand this lab,
+# but othello is over now so idrc
+# also if you ever see this ihy michael 
 
 def main():
     moves = []
