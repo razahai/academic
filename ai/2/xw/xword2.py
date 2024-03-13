@@ -11,7 +11,9 @@ def main():
 
     seeds = []
     dct = [word for word in open(args[0]).read().splitlines() if len(word) > 2]
-    
+
+    len_dct = build_dcts(dct)
+            
     for i in range(1, len(args)):
         if args[i][0].lower() == "v" or args[i][0].lower() == "h":
             seeds.append(args[i])
@@ -24,64 +26,84 @@ def main():
     # check before even starting the recursion
     preliminary_rules(base_puzzle)
     puzzle = construct_crossword(base_puzzle)
-    puzzle = fill_puzzle(puzzle, dct)
+    puzzle = fill_puzzle(puzzle, len_dct)
     display(puzzle)
 
-def fill_puzzle(puzzle, dct):
-    dct = sorted(dct, key=lambda w: len(w))
+def fill_puzzle(puzzle, len_dct):
+    entries = get_entries(puzzle)
     
-    space = []
+    filled_puzzle = _fill_puzzle_bf(puzzle, entries, len_dct)
+
+    return filled_puzzle
+
+def _fill_puzzle_bf(puzzle, entries, len_dct):
+    if len(entries) == 0: 
+        return puzzle
+
+    display(puzzle)
+
+    entry = entries[0]
     
-    for i,t in enumerate(puzzle):
-        if puzzle[i] == OPENCHAR:
-            space.append((i, OPENCHAR))
-        if puzzle[i] != BLOCKCHAR and puzzle[i] != OPENCHAR:
-            # non open char
-            space.append((i, t))
-        if puzzle[i] == BLOCKCHAR:
-            if space:
-                preletters = [(let,i) for i,let in enumerate(space) if let[1] != OPENCHAR]
-
-                for word in dct:
-                    invalid_word = False
-                    if len(word) == len(space):
-                        letters = [*word]
-                        
-                        for prel in preletters:
-                            if letters[prel[1]] != prel[0][1]:
-                                invalid_word = True
-                                break
-                        if invalid_word: continue
-
-                        for i in range(len(space)):
-                            puzzle[space[i][0]] = letters[i]
-                        dct.remove(word)
+    if len(entry) in len_dct:
+        for word in len_dct[len(entry)]:
+            invalid_word = False
+            for i,let in enumerate(entry):
+                if puzzle[let] != OPENCHAR:
+                    if word[i].lower() != puzzle[let]:
+                        invalid_word = True
                         break
-                
+            if invalid_word: continue
+            
+            npz = [*puzzle]
+
+            for i in range(len(entry)):
+                npz[entry[i]] = word[i]
+            nld = {c: len_dct[c] for c in len_dct}
+            nld[len(entry)] = [k for k in len_dct[len(entry)] if k != word]
+            nent = [netr for netr in entries if netr != entry]
+            nbr = _fill_puzzle_bf(npz, nent, nld)
+            if nbr: return nbr
+    return ""
+
+def get_entries(puzzle):
+    space = []
+    spaces = []
+
+    for i in range(len(puzzle)):
+        if puzzle[i] == OPENCHAR or (puzzle[i] != BLOCKCHAR and puzzle[i] != OPENCHAR):
+            space.append(i)
+        if puzzle[i] == BLOCKCHAR:
+            if space: spaces.append(space)
             space = []
         elif i % COLS == COLS-1:
-            if space:
-                preletters = [(let,i) for i,let in enumerate(space) if let[1] != OPENCHAR]
-                
-                for word in dct:
-                    invalid_word = False
-                    if len(word) == len(space):
-                        letters = [*word]
-                        
-                        for prel in preletters:
-                            if letters[prel[1]] != prel[0][1]:
-                                invalid_word = True
-                                break
-                        if invalid_word: continue
-
-                        for i in range(len(space)):
-                            puzzle[space[i][0]] = letters[i]
-                        dct.remove(word)
-                        break
-
+            if space: spaces.append(space)
             space = []
-            
-    return puzzle
+    
+    for c in range(COLS):
+        for i in range(c, len(puzzle), COLS):
+            if puzzle[i] == OPENCHAR or (puzzle[i] != BLOCKCHAR and puzzle[i] != OPENCHAR):
+                space.append(i)
+            if puzzle[i] == BLOCKCHAR:
+                if space: spaces.append(space)
+                space = []
+            elif i // COLS == ROWS-1:
+                if space: spaces.append(space)
+                space = [] 
+
+    spaces.sort(key=lambda sp: len(sp), reverse=True)
+
+    return spaces  
+
+def build_dcts(dct):
+    len_dct = {}
+    
+    for word in dct:
+        if len(word) in len_dct:
+            len_dct[len(word)].append(word)
+        else:
+            len_dct[len(word)] = [word]
+
+    return len_dct
 
 def construct_crossword(puzzle):
     apply_rules(puzzle)
@@ -143,10 +165,10 @@ def invalid(puzzle):
             if k+COLS*3 < len(puzzle):
                 if puzzle[k+COLS*3] == BLOCKCHAR and not BLOCKCHAR*2 == "".join(puzzle[k+COLS:k+COLS*3:COLS]):
                     return True
-            if k+COLS < len(puzzle) and (k+COLS)//COLS==COLS-1:
+            if k+COLS < len(puzzle) and (k+COLS)//COLS==ROWS-1:
                 if not puzzle[k+COLS] == BLOCKCHAR:
                     return True
-            if k+COLS*2 < len(puzzle) and (k+COLS*2)//COLS==COLS-1:
+            if k+COLS*2 < len(puzzle) and (k+COLS*2)//COLS==ROWS-1:
                 if not (puzzle[k+COLS] == BLOCKCHAR or puzzle[k+COLS*2] == BLOCKCHAR):
                     return True
             
@@ -203,7 +225,7 @@ def apply_rules(puzzle):
 
 
 def edge_rules(puzzle):
-    edgeinds = [i for i in range(len(puzzle)) if (not (puzzle[i] == EMPTYCHAR or puzzle[i] == BLOCKCHAR)) and (i%COLS == 0 or i%COLS == COLS-1 or i//COLS==COLS-1 or i//COLS==0)]
+    edgeinds = [i for i in range(len(puzzle)) if (not (puzzle[i] == EMPTYCHAR or puzzle[i] == BLOCKCHAR)) and (i%COLS == 0 or i%COLS == COLS-1 or i//COLS==ROWS-1 or i//COLS==0)]
     
     for ind in edgeinds:
         if ind%COLS == 0:
@@ -216,7 +238,7 @@ def edge_rules(puzzle):
             if ind-2 >= 0 and (ind-2)//COLS==ind//COLS:
                 safe_set(puzzle, ind-1, OPENCHAR)
                 safe_set(puzzle, ind-2, OPENCHAR)
-        if ind//COLS==COLS-1:
+        if ind//COLS==ROWS-1:
             # bot
             if ind-COLS*2 >= 0:
                 safe_set(puzzle, ind-COLS, OPENCHAR)
@@ -292,7 +314,7 @@ def h__h(puzzle, ind, q):
         elif puzzle[ind+COLS*2] == BLOCKCHAR:
             if safe_set(puzzle, ind+COLS, BLOCKCHAR):
                 q.append(ind+COLS)
-        elif (ind+COLS*2)//COLS == COLS-1:
+        elif (ind+COLS*2)//COLS == ROWS-1:
             if safe_set(puzzle, ind+COLS, BLOCKCHAR):
                 q.append(ind+COLS)
             if safe_set(puzzle, ind+COLS*2, BLOCKCHAR):
@@ -301,7 +323,7 @@ def h__h(puzzle, ind, q):
         if puzzle[ind+COLS*2] == BLOCKCHAR:
             if safe_set(puzzle, ind+COLS, BLOCKCHAR):
                 q.append(ind+COLS)
-        elif (ind+COLS*2)//COLS == COLS-1:
+        elif (ind+COLS*2)//COLS == ROWS-1:
             if safe_set(puzzle, ind+COLS, BLOCKCHAR):
                 q.append(ind+COLS)
             if safe_set(puzzle, ind+COLS*2, BLOCKCHAR):
