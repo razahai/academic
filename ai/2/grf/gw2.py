@@ -1,11 +1,26 @@
 import sys; args = sys.argv[1:]
 import re
 
-# GW1 - 2000/2000 - 100%
-# I decided to use the casing provided by the spec for this lab (camelCase)
-# Sidenote: throughout the lab I use 'graph' or 'edges' to refer to graphDS["edges"]
-#           so please don't be confused if I name graphDS["edges"] 'graph' in some 
-#           places and 'edges' in other places
+# GW2 - undefined%
+
+POSSIBILITIES = {
+    "N": "N",
+    "E": "E",
+    "S": "S",
+    "W": "W",
+    "EN": "L",
+    "SW": "7",
+    "ES": "r",
+    "NW": "J",
+    "EW": "-",
+    "NS": "|",
+    "ENSW": "+",
+    "ENW": "^",
+    "ESW": "v",
+    "ENS": ">",
+    "NSW": "<",
+    "": "."
+}
 
 def gDirective(directive, graphDS):
     directiveRegex = r"G(G|N)?(\d+)(W(\d+))?(R(\d+))?"
@@ -16,7 +31,6 @@ def gDirective(directive, graphDS):
         graphRwd = match.group(6) or 12 # default reward = 12
         graphRwd = int(graphRwd)
         if graphType.lower == "n":
-            # GGW0 ~= (i.e. congruent symbol; grader doesn't allow) GN
             graphWidth = 0
         else:
             graphWidth = int(match.group(4) or calcWidth(graphType, graphSize)) # width defaults to smallest int, at least sqrt(graphSize)
@@ -33,15 +47,10 @@ def gDirective(directive, graphDS):
         graphDS["type"] = graphType
         graphDS["width"] = graphWidth
         graphDS["rwd"] = graphRwd 
-        # initializing vertexProps here because g directive will always be provided
-        # whereas v directives might not be - despite this, grfVProps will still need
-        # to access vertexProps, so we need to create a default empty state first
-        #
-        # another way to do this would be to simply check if vProps & the specific vertex
-        # exists in graphDS within the grfVProps function and if it doesn't, return {}
+        
         graphDS["vertexProps"] = [{}]*len(graph)
-        graphDS["edgeProps"] = {} # this is subject to change since the spec says to combine this with "edges"
-            
+        graphDS["edgeProps"] = {}
+        
 def vDirective(directive, graphDS):
     directiveRegex = r"V([-\d:,]+)((B)|(-?R(\d+)?)|(T))*"
     if (match := re.match(directiveRegex, directive)):
@@ -53,7 +62,7 @@ def vDirective(directive, graphDS):
         vTerminal = match.group(6) or False
     
         vertices = set(computeVslcs(vslcs, len(graphDS["edges"])))
-
+        
         vRwd = int(vRwd)
         if vTerminal:
             # i don't know a more elegant way to do this
@@ -282,7 +291,7 @@ def computeVslcs(vslcs, graphSize):
 
     for vslc in indivVslcs:
         vslcNum = vslc.split(":")
-        
+
         if len(vslcNum) == 3:
             # n:n:n, n::n, ::n, n::, :n:, :n:n
             if vslcNum[0] and vslcNum[1] and vslcNum[2]:
@@ -297,8 +306,6 @@ def computeVslcs(vslcs, graphSize):
                 vertices.extend(possibleVerts[int(vslcNum[0])::])
             elif not vslcNum[0] and vslcNum[1] and vslcNum[2]:
                 vertices.extend(possibleVerts[:int(vslcNum[1]):int(vslcNum[2])])
-            elif not vslcNum[0] and not vslcNum[1] and not vslcNum[2]:
-                vertices.extend(possibleVerts[::])
         elif len(vslcNum) == 2:
             # n:n, :n, n:
             if vslcNum[0] and vslcNum[1]:
@@ -307,8 +314,6 @@ def computeVslcs(vslcs, graphSize):
                 vertices.extend(possibleVerts[int(vslcNum[0]):])
             elif not vslcNum[0] and vslcNum[1]:
                 vertices.extend(possibleVerts[:int(vslcNum[1])])
-            elif not vslcNum[0] and not vslcNum[1]:
-                vertices.extend(possibleVerts[:])
         elif len(vslcNum) == 1:
             # n
             vertices.append(possibleVerts[int(vslcNum[0])])
@@ -375,24 +380,6 @@ def assumeEdges(graph, graphWidth):
 def stringifyEdges(edges, width):
     edgeStr = ""
     jumpStr = ""
-    possibilities = {
-        "N": "N",
-        "E": "E",
-        "S": "S",
-        "W": "W",
-        "EN": "L",
-        "SW": "7",
-        "ES": "r",
-        "NW": "J",
-        "EW": "-",
-        "NS": "|",
-        "ENSW": "+",
-        "ENW": "^",
-        "ESW": "v",
-        "ENS": ">",
-        "NSW": "<",
-        "": "."
-    }
     jumps = set()
     typeJumps = {"~": set(), "=": set()}
     
@@ -438,7 +425,7 @@ def stringifyEdges(edges, width):
         # so possiblities dict matches this string
         if width != 0:
             directions = "".join(sorted(directions))
-            edgeStr += possibilities[directions]
+            edgeStr += POSSIBILITIES[directions]
 
     # compute jumpStr
     for typ in typeJumps:
@@ -468,13 +455,6 @@ def displayEdges(edgesStr, width, type):
             edgesStr2D += jumpsStr
         return edgesStr2D
 
-    # Sidenote: I don't know why the grader doesn't accept the lazy way of printing out jumps 
-    # (i.e 1=2;3=4;5=6 as opposed to 1,3,5=2,4,6) and printing out vertex/edge properties
-    # (i.e v:{rwd: int} as opposed to v: rwd: int) even though the spec says otherwise - the only 
-    # reason I had to work on this lab for like 3 more hours was because the grader was spitting out 
-    # the "Spurious key" error even when it would have the key in its own Expected run - the only difference
-    # was my run had different formatting - so I changed it exactly to the Expected formatting and got 2000/2000
-    
     for k in range(0, len(edgesStr), width):
         edgesStr2D += edgesStr[k:k+width] + "\n"
     
@@ -497,10 +477,6 @@ def grfParse(lstArgs):
     return graphDS
 
 def grfSize(graphDS):
-    # just so someone reading this isn't confused:
-    # yes technically |e| can != |v|, but our data structure is obviously an adjacency
-    # list so it's a list[set] of size v where each index is the list of edges that a
-    # specific vertex has 
     return len(graphDS["edges"]) 
 
 def grfNbrs(graphDS, vert):
@@ -509,10 +485,7 @@ def grfNbrs(graphDS, vert):
 def grfGProps(graphDS):
     props = {}
     if graphDS["type"].lower() != "n":
-        # "type" could be removed in favor of N graph widths = -1 instead of 0
-        # this does not technically follow the spec, but since width is essentially
-        # useless for N graphs, i think it's fine if we deviate from the spec and use -1 instead of 0
-        props["width"] = graphDS["width"]
+       props["width"] = graphDS["width"]
     props["rwd"] = graphDS["rwd"]
     return props
 
@@ -577,15 +550,122 @@ def grfStrProps(graphDS):
     
     return propsOutput
 
+# GW2 functions
+
+def findPathToReward(graphDS, v):
+    if "rwd" in graphDS["vertexProps"][v]:
+        return {v: []}
+    
+    # this is really ugly code and there is probably
+    # a more optimized way to do it but this is my naive solution ! 
+
+    startingNbrs = sorted(graphDS["edges"][v], key=lambda n: not "rwd" in graphDS["vertexProps"][n])
+    q = []
+    visited = {}
+    allPaths = {}
+    for nbr in startingNbrs:
+        q.append((nbr, nbr))
+        visited[nbr] = {nbr: ""}
+        
+    while q:
+        parent, node = q.pop(0)
+        nbrs = sorted(graphDS["edges"][node], key=lambda n: not "rwd" in graphDS["vertexProps"][n])
+        
+        if "rwd" in graphDS["vertexProps"][node]:
+            path = []
+            current = node
+
+            while current != "":
+                path.append(current)
+                current = visited[parent][current]
+            
+            allPaths[parent] = path[::-1]
+
+        for nbr in nbrs:
+            if nbr in visited[parent]: continue
+            if "rwd" in graphDS["vertexProps"][nbr]:
+                path = []
+                visited[parent][nbr] = node
+                current = visited[parent][nbr]
+                
+                path.append(nbr)
+                
+                while current != "":
+                    path.append(current)
+                    current = visited[parent][current]
+
+                allPaths[parent] = path[::-1]
+            else:
+                q.append((parent, nbr))
+                visited[parent][nbr] = node
+    
+    truncatedPaths = {}
+    if allPaths:
+        minPathLen = len(min(allPaths.values(), key=lambda path: len(path)))
+        
+        for path in sorted(allPaths, key=lambda p: len(allPaths[p])):
+            if len(allPaths[path]) != minPathLen:
+                break
+            truncatedPaths[path] = allPaths[path]
+
+    return truncatedPaths
+
+def pathsToDirection(v, width, paths):
+    directions = ""
+    jumps = []
+
+    if v in paths and len(paths[v]) == 0:
+        return ("*", jumps)
+        
+    for path in paths:
+        if v+1 == path:
+            directions += "E"
+        elif v-1 == path:
+            directions += "W"
+        elif v-width == path:
+            directions += "N"
+        elif v+width == path:
+            directions += "S"
+        else:
+            jumps.append((v, path))
+
+    directions = "".join(sorted(directions))
+    return (POSSIBILITIES[directions], jumps)
+
+
+def grfStrPolicy(graphDS):
+    policyOutput = "Policy:"
+    gridOutput = ""
+    jumpOutput = ""
+    allJumps = set()
+
+    for v in range(len(graphDS["edges"])):
+        paths = findPathToReward(graphDS, v)
+        direction, jumps = pathsToDirection(v, graphDS["width"], paths)
+        
+        if v % graphDS["width"] == 0:
+            gridOutput += "\n"
+        gridOutput += f"{direction} "
+        
+        if jumps:
+            allJumps.update(jumps)
+
+    if allJumps:
+        leftSide = ""
+        rightSide = ""
+        for l, r in allJumps:
+            leftSide += f"{l},"
+            rightSide += f"{r},"
+        jumpOutput += f"{leftSide[:-1]}~{rightSide[:-1]}" 
+    
+    policyOutput += gridOutput + "\n" + jumpOutput
+    
+    return policyOutput
 
 def main():
     graphDS = grfParse(args)
-    edgesStr = grfStrEdges(graphDS)
-    propsStr = grfStrProps(graphDS)
-
-    print(displayEdges(edgesStr, graphDS["width"], graphDS["type"]))
-    print(propsStr)
-    
+    grfPolicy = grfStrPolicy(graphDS)
+    print(grfPolicy)
 
 if __name__ == "__main__":
     main()
