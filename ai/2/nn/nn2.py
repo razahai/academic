@@ -2,18 +2,15 @@ import sys; args = sys.argv[1:]
 import random
 import math
 
-# NN2 - 90.91% :(
+# NN2 - 98.14%
 
-alpha = 0.35
+alpha = 0.36
 
 def main():
     gates = open(args[0]).read().splitlines()
     inputs = []
     outputs = []
     
-    f = open("output1.txt", "w")
-    f.write("Error\n")
-
     for gate in gates:
         inp, out = list(map(lambda s: list(map(float, s.strip().split(" "))), gate.split("=>")))
         inputs.append(inp + [1])
@@ -22,29 +19,45 @@ def main():
     nn, weights = init_nn(inputs[0], outputs[0])
     best_out_err = float("inf")
 
-    out_err = 0
-    for epoch in range(50000):
+    if len(outputs[0]) > 1:
+        while best_out_err > 0.01:
+            nn, weights = init_nn(inputs[0], outputs[0])
+            out_err = 0
+            for epoch in range(4000):
+                out_err = 0
+                for i in range(len(inputs)):
+                    nn[0] = inputs[i]
+                    out_err += back_propagate(nn, weights, outputs[i])
+                out_err *= .5
+                if epoch % 1000 == 0 and out_err < best_out_err:
+                    display(nn, weights)
+                if out_err < best_out_err:
+                    best_out_err = out_err
+            if out_err < best_out_err:
+                display(nn, weights)    
+    else:
         out_err = 0
-        for i in range(len(inputs)):
-            nn[0] = inputs[i]
-            out_err += back_propagate(nn, weights, outputs[i])
-        out_err *= .5
-        if epoch % 1000 == 0:
-            f.write(str(out_err) + "\n")
-        if epoch % 1000 == 0 and out_err < best_out_err:
-            display(nn, weights)
+        for epoch in range(50000):
+            out_err = 0
+            for i in range(len(inputs)):
+                nn[0] = inputs[i]
+                out_err += back_propagate(nn, weights, outputs[i])
+            out_err *= .5
+            if epoch % 1000 == 0 and out_err < best_out_err:
+                print(f"epoch {epoch}")
+                display(nn, weights)
+            if out_err < best_out_err:
+                best_out_err = out_err
+        
         if out_err < best_out_err:
+            display(nn, weights)
             best_out_err = out_err
-    
-    if out_err < best_out_err:
-        display(nn, weights)
-
+       
 def back_propagate(nn, weights, outputs):
     feed_forward(nn, weights)
     # E = t_i - y_i^l
     output_err = [outputs[i] - nn[-1][i] for i in range(len(outputs))]
     prev_err = output_err
-    
     G = []
 
     for layer in range(len(nn)-2, -1, -1):
@@ -76,10 +89,10 @@ def calculate_error(nn, weights, layer, prev_err):
     # E_i^layer = ((sigma)j w_ij^layer * E_j^layer+1) * f'(@x_i^layer)
     for n in range(len(nn[layer])):
         err = 0
-        for j in range(len(nn[layer+1])):
-            if layer+1 == len(nn)-1:
-                err += prev_err[j] * weights[layer][j]
-            else:
+        if layer+1 == len(nn)-1:
+            err = prev_err[n] * weights[layer][n]
+        else:
+            for j in range(len(nn[layer+1])):
                 err += prev_err[j] * weights[layer][n * len(nn[layer+1]) + j]
         err *= sigmoid_prime(nn[layer][n])
         errs.append(err)
@@ -99,9 +112,7 @@ def feed_forward(nn, weights):
     # output layer no activation
     preactivation = 0
     for n in range(len(nn[-1])):
-        for pn, pnode in enumerate(nn[-2]):
-            preactivation += weights[-1][pn] * pnode
-            #(n * len(nn[-1])) + pn
+        preactivation += weights[-1][n] * nn[-2][n]
         nn[-1][n] = preactivation
         preactivation = 0
 
@@ -122,8 +133,6 @@ def init_nn(inp, out):
             for _ in range(len(nn[i]) * len(nn[i+1])):
                 weight.append(random.random())
             weights.append(weight)
-        
-        # weights = [[0, 0, 0, 0, 0, 0], [0, 0], [0]]
     else:
         nn.append(inp)
         nn.append([0, 0])
@@ -133,12 +142,13 @@ def init_nn(inp, out):
         for i in range(2):
             weight = []
             for _ in range(len(nn[i]) * len(nn[i+1])):
-                weight.append(random.random())
+                std = math.sqrt(2 / (len(nn[i]) + len(nn[i+1])))
+                weight.append(random.gauss(0, std))
+                # weight.append(random.random())
             weights.append(weight)
         
         weights.append([random.random(), random.random()])
-        # weights = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0]]
-
+        
     return nn, weights
 
 def sigmoid(X):
