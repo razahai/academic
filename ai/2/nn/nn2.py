@@ -5,7 +5,7 @@ import math
 # NN2 - 90.91% if you include test case 11
 #       100%   if you exclude test case 11
 
-alpha = 0.2
+alpha = 0.35
 
 def main():
     gates = open(args[0]).read().splitlines()
@@ -20,7 +20,29 @@ def main():
     nn, weights = init_nn(inputs[0], outputs[0])
     best_out_err = float("inf")
 
-    for epoch in range(50000):
+    # if len(outputs[0]) > 1:
+    #     best_out_err_diff = float("inf")
+
+    #     for k in range(100):
+    #         nn, weights = init_nn(inputs[0], outputs[0])
+    #         out_err = 0
+    #         prev_err = -1
+    #         for epoch in range(10000):
+    #             out_err = 0
+    #             for i in range(len(inputs)):
+    #                 nn[0] = inputs[i]
+    #                 out_err += back_propagate(nn, weights, outputs[i])
+    #             out_err *= .5
+    #             if prev_err == -1:
+    #                 prev_err = out_err
+    #             else:
+    #                 if epoch % 1000 == 0 and (prev_err - out_err) >= 0.85:
+    #                     display(nn, weights)
+    #         if out_err < 0.01:
+    #             display(nn, weights)    
+    # else:
+    out_err = 0
+    for epoch in range(1):
         out_err = 0
         for i in range(len(inputs)):
             nn[0] = inputs[i]
@@ -30,9 +52,10 @@ def main():
             display(nn, weights)
         if out_err < best_out_err:
             best_out_err = out_err
-
-    display(nn, weights)
-
+    
+    if out_err < best_out_err:
+        display(nn, weights)
+    
 def back_propagate(nn, weights, outputs):
     feed_forward(nn, weights)
     # E = t_i - y_i^l
@@ -66,7 +89,10 @@ def calculate_error(nn, weights, layer, prev_err):
     for n in range(len(nn[layer])):
         err = 0
         for j in range(len(nn[layer+1])):
-            err += prev_err[j] * weights[layer][n * len(nn[layer+1]) + j]
+            if layer+1 == len(nn)-1:
+                err += prev_err[j] * weights[layer][j]
+            else:
+                err += prev_err[j] * weights[layer][n * len(nn[layer+1]) + j]
         err *= sigmoid_prime(nn[layer][n])
         errs.append(err)
 
@@ -86,7 +112,8 @@ def feed_forward(nn, weights):
     preactivation = 0
     for n in range(len(nn[-1])):
         for pn, pnode in enumerate(nn[-2]):
-            preactivation += weights[-1][(n * len(nn[-1])) + pn] * pnode
+            preactivation += weights[-1][n] * pnode
+            #(n * len(nn[-1])) + pn
         nn[-1][n] = preactivation
         preactivation = 0
 
@@ -107,19 +134,24 @@ def init_nn(inp, out):
             for _ in range(len(nn[i]) * len(nn[i+1])):
                 weight.append(random.random())
             weights.append(weight)
+        
+        # weights = [[0, 0, 0, 0, 0, 0], [0, 0], [0]]
     else:
         nn.append(inp)
         nn.append([0, 0])
         nn.append([0, 0])
         nn.append([0, 0])
 
-        for i in range(3):
+        for i in range(2):
             weight = []
             for _ in range(len(nn[i]) * len(nn[i+1])):
-                # std = math.sqrt(2 / (len(nn[i]) + len(nn[i+1])))
-                # weight.append(random.gauss(0, std))
-                weight.append(random.random())
+                std = math.sqrt(2 / (len(nn[i]) + len(nn[i+1])))
+                weight.append(random.gauss(0, std))
+                # weight.append(random.random())
             weights.append(weight)
+        
+        weights.append([random.random(), random.random()])
+        weights = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0]]
 
     return nn, weights
 
