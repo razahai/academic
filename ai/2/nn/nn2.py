@@ -27,7 +27,7 @@ def main():
         out_err = 0
         for i in range(len(inputs)):
             nn[0] = inputs[i]
-            out_err += bp(nn, weights, outputs[i])
+            out_err += back_propagate(nn, weights, outputs[i])
         out_err *= .5
         if epoch % 1000 == 0:
             f.write(str(out_err) + "\n")
