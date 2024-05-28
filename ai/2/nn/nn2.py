@@ -2,9 +2,9 @@ import sys; args = sys.argv[1:]
 import random
 import math
 
-# NN2 - 98.14%
+# NN2 - 100%
 
-alpha = 0.36
+alpha = 0.35
 
 def main():
     gates = open(args[0]).read().splitlines()
@@ -19,25 +19,10 @@ def main():
     nn, weights = init_nn(inputs[0], outputs[0])
     best_out_err = float("inf")
 
-    if len(outputs[0]) > 1:
-        while best_out_err > 0.01:
-            nn, weights = init_nn(inputs[0], outputs[0])
-            out_err = 0
-            for epoch in range(4000):
-                out_err = 0
-                for i in range(len(inputs)):
-                    nn[0] = inputs[i]
-                    out_err += back_propagate(nn, weights, outputs[i])
-                out_err *= .5
-                if epoch % 1000 == 0 and out_err < best_out_err:
-                    display(nn, weights)
-                if out_err < best_out_err:
-                    best_out_err = out_err
-            if out_err < best_out_err:
-                display(nn, weights)    
-    else:
+    while best_out_err > 0.01:
+        nn, weights = init_nn(inputs[0], outputs[0])
         out_err = 0
-        for epoch in range(50000):
+        for epoch in range(20000):
             out_err = 0
             for i in range(len(inputs)):
                 nn[0] = inputs[i]
@@ -52,6 +37,8 @@ def main():
         if out_err < best_out_err:
             display(nn, weights)
             best_out_err = out_err
+    
+    display(nn, weights)
        
 def back_propagate(nn, weights, outputs):
     feed_forward(nn, weights)
