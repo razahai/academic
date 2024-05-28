@@ -2,8 +2,7 @@ import sys; args = sys.argv[1:]
 import random
 import math
 
-# NN2 - 90.91% if you include test case 11
-#       100%   if you exclude test case 11
+# NN2 - 90.91% :(
 
 alpha = 0.35
 
@@ -12,6 +11,9 @@ def main():
     inputs = []
     outputs = []
     
+    f = open("output1.txt", "w")
+    f.write("Error\n")
+
     for gate in gates:
         inp, out = list(map(lambda s: list(map(float, s.strip().split(" "))), gate.split("=>")))
         inputs.append(inp + [1])
@@ -20,34 +22,15 @@ def main():
     nn, weights = init_nn(inputs[0], outputs[0])
     best_out_err = float("inf")
 
-    # if len(outputs[0]) > 1:
-    #     best_out_err_diff = float("inf")
-
-    #     for k in range(100):
-    #         nn, weights = init_nn(inputs[0], outputs[0])
-    #         out_err = 0
-    #         prev_err = -1
-    #         for epoch in range(10000):
-    #             out_err = 0
-    #             for i in range(len(inputs)):
-    #                 nn[0] = inputs[i]
-    #                 out_err += back_propagate(nn, weights, outputs[i])
-    #             out_err *= .5
-    #             if prev_err == -1:
-    #                 prev_err = out_err
-    #             else:
-    #                 if epoch % 1000 == 0 and (prev_err - out_err) >= 0.85:
-    #                     display(nn, weights)
-    #         if out_err < 0.01:
-    #             display(nn, weights)    
-    # else:
     out_err = 0
-    for epoch in range(1):
+    for epoch in range(50000):
         out_err = 0
         for i in range(len(inputs)):
             nn[0] = inputs[i]
-            out_err += back_propagate(nn, weights, outputs[i])
+            out_err += bp(nn, weights, outputs[i])
         out_err *= .5
+        if epoch % 1000 == 0:
+            f.write(str(out_err) + "\n")
         if epoch % 1000 == 0 and out_err < best_out_err:
             display(nn, weights)
         if out_err < best_out_err:
@@ -55,7 +38,7 @@ def main():
     
     if out_err < best_out_err:
         display(nn, weights)
-    
+
 def back_propagate(nn, weights, outputs):
     feed_forward(nn, weights)
     # E = t_i - y_i^l
@@ -67,15 +50,20 @@ def back_propagate(nn, weights, outputs):
     for layer in range(len(nn)-2, -1, -1):
         layer_err = calculate_error(nn, weights, layer, prev_err)
         gradient = []   
-        for j in range(len(prev_err)):
-            for i in range(len(nn[layer])):
-                _g = nn[layer][i] * prev_err[j]
+        if layer == len(nn)-2:
+            for j in range(len(prev_err)):
+                _g = nn[layer][j] * prev_err[j]
                 gradient.append(_g)
+        else:
+            for j in range(len(prev_err)):
+                for i in range(len(nn[layer])):
+                    _g = nn[layer][i] * prev_err[j]
+                    gradient.append(_g)
         G.append(gradient)
         prev_err = layer_err
     
     G.reverse()
-
+    
     for i in range(len(weights)):
         for j in range(len(weights[i])):
             weights[i][j] += (alpha * G[i][j])
@@ -112,7 +100,7 @@ def feed_forward(nn, weights):
     preactivation = 0
     for n in range(len(nn[-1])):
         for pn, pnode in enumerate(nn[-2]):
-            preactivation += weights[-1][n] * pnode
+            preactivation += weights[-1][pn] * pnode
             #(n * len(nn[-1])) + pn
         nn[-1][n] = preactivation
         preactivation = 0
@@ -145,13 +133,11 @@ def init_nn(inp, out):
         for i in range(2):
             weight = []
             for _ in range(len(nn[i]) * len(nn[i+1])):
-                std = math.sqrt(2 / (len(nn[i]) + len(nn[i+1])))
-                weight.append(random.gauss(0, std))
-                # weight.append(random.random())
+                weight.append(random.random())
             weights.append(weight)
         
         weights.append([random.random(), random.random()])
-        weights = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0]]
+        # weights = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0]]
 
     return nn, weights
 
