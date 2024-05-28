@@ -21,6 +21,7 @@ def main():
         print(v[:6], end=" ")
 
 def init_nn(inputs, weights):
+    
     _nn = []
 
     for l in range(len(weights)-1, -1, -1):

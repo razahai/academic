@@ -2,32 +2,50 @@ import sys; args = sys.argv[1:]
 import random
 import math
 
-# NN2 - undefined%
+# NN2 - 90.91% if you include test case 11
+#       100%   if you exclude test case 11
+
+alpha = 0.2
 
 def main():
     gates = open(args[0]).read().splitlines()
+    inputs = []
+    outputs = []
     
     for gate in gates:
-        inputs, outputs = list(map(lambda s: list(map(float, s.strip().split(" "))), gate.split("=>")))
-        nn, weights = init_nn(inputs)
-        for epoch in range(5000):
-            back_propagate(nn, weights, outputs)
-        print(nn)
-        display(nn, weights)
-        
+        inp, out = list(map(lambda s: list(map(float, s.strip().split(" "))), gate.split("=>")))
+        inputs.append(inp + [1])
+        outputs.append(out)
+
+    nn, weights = init_nn(inputs[0], outputs[0])
+    best_out_err = float("inf")
+
+    for epoch in range(50000):
+        out_err = 0
+        for i in range(len(inputs)):
+            nn[0] = inputs[i]
+            out_err += back_propagate(nn, weights, outputs[i])
+        out_err *= .5
+        if epoch % 1000 == 0 and out_err < best_out_err:
+            display(nn, weights)
+        if out_err < best_out_err:
+            best_out_err = out_err
+
+    display(nn, weights)
+
 def back_propagate(nn, weights, outputs):
     feed_forward(nn, weights)
     # E = t_i - y_i^l
     output_err = [outputs[i] - nn[-1][i] for i in range(len(outputs))]
     prev_err = output_err
-
-    G = []
     
+    G = []
+
     for layer in range(len(nn)-2, -1, -1):
         layer_err = calculate_error(nn, weights, layer, prev_err)
-        gradient = []
-        for i in range(len(nn[layer])):
-            for j in range(len(prev_err)):
+        gradient = []   
+        for j in range(len(prev_err)):
+            for i in range(len(nn[layer])):
                 _g = nn[layer][i] * prev_err[j]
                 gradient.append(_g)
         G.append(gradient)
@@ -37,9 +55,9 @@ def back_propagate(nn, weights, outputs):
 
     for i in range(len(weights)):
         for j in range(len(weights[i])):
-            weights[i][j] += 0.1 * G[i][j]
-
-    return False
+            weights[i][j] += (alpha * G[i][j])
+    
+    return sum(list(map(lambda err: err*err, output_err)))
     
 def calculate_error(nn, weights, layer, prev_err):
     errs = []
@@ -60,7 +78,7 @@ def feed_forward(nn, weights):
 
         for n in range(len(nn[layer])):
             for pn, pnode in enumerate(nn[layer-1]):
-                preactivation += weights[layer-1][(n * len(nn[layer-1])) + pn] * pnode # here it would be dot(W, X) + B but there's no bias and all we are given is one-dimensional vectors
+                preactivation += weights[layer-1][(n * len(nn[layer-1])) + pn] * pnode 
             nn[layer][n] = sigmoid(preactivation)
             preactivation = 0
     
@@ -72,24 +90,36 @@ def feed_forward(nn, weights):
         nn[-1][n] = preactivation
         preactivation = 0
 
-def init_nn(inputs):
+def init_nn(inp, out):
     nn = []
     weights = []
 
-    # hardcoding the (1 + # inputs) 2 1 1 architecture
-    nn.append(inputs + [1])
-    nn.append([0, 0])
-    nn.append([0])
-    nn.append([0])
+    if len(out) <= 1:
+        # hardcoding the (1 + # inputs) 2 1 1 architecture
+        nn.append(inp)
+        nn.append([0, 0])
+        nn.append([0])
+        nn.append([0])
 
-    # init weights 2(1 + # inputs) 2 1
-    for i in range(3): 
-        weight = []
-        for _ in range(len(nn[i]) * len(nn[i+1])):
-            weight.append(random.uniform(0, 1))
-        weights.append(weight)
+        # init weights 2(1 + # inputs) 2 1
+        for i in range(3): 
+            weight = []
+            for _ in range(len(nn[i]) * len(nn[i+1])):
+                weight.append(random.random())
+            weights.append(weight)
+    else:
+        nn.append(inp)
+        nn.append([0, 0])
+        nn.append([0, 0])
+        nn.append([0, 0])
 
-    # weights = [[2, 1, 1, 0, 2, 3], [1/2, 3/4], [7/8]]
+        for i in range(3):
+            weight = []
+            for _ in range(len(nn[i]) * len(nn[i+1])):
+                # std = math.sqrt(2 / (len(nn[i]) + len(nn[i+1])))
+                # weight.append(random.gauss(0, std))
+                weight.append(random.random())
+            weights.append(weight)
 
     return nn, weights
 
