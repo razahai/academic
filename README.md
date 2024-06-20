@@ -4,9 +4,9 @@ vcs for managing classes, assignments, files, etc.
 
 ## scripts
 
-**ai-clean-commit** - strips full name, graduation year, and class period from the bottom of each file
+**ai-clean-commit** - strips full name, graduation year, and class period from the bottom of each file in ai/
 
-**cv-clean-commit** - replaces ion username with "--" in each file 
+**cv-clean-commit** - replaces ion username with "--" in each file in cv/
 
 
 ## notes
