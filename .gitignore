@@ -1,7 +1,7 @@
 run.bat
-*.txt 
 .env
 dev/
+ai/**/*.txt
 
 # raw folders before committing
 *-original/

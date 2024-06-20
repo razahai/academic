@@ -10,7 +10,7 @@ if not exist %CD%\%folder%\ echo You need to name your AI folder as the followin
 @REM copy the original folder into a new folder called "ai" which will be
 @REM committed to the repository
 ren %folder% "%folder%-original"
-robocopy "%folder%-original" ai /e > nul
+robocopy "%folder%-original" ai /E > nul
 
 cd "./%folder%" || exit /b 1
 
