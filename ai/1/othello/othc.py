@@ -1,8 +1,9 @@
 import sys; args = sys.argv[1:]
 
-# Othello C - Negamax - 100% wow :)
+# Othello C - Negamax - 100%
 
 flips = {
+    # * this is not what you should do, but it works 
     # index: [[right], [left], [down], [up], [leftdowndiag], [leftupdiag], [rightdowndiag], [rightupdiag]]		
     0: [[1, 2, 3, 4, 5, 6, 7], [], [8, 16, 24, 32, 40, 48, 56], [], [], [], [9, 18, 27, 36, 45, 54, 63], []],
     1: [[2, 3, 4, 5, 6, 7], [0], [9, 17, 25, 33, 41, 49, 57], [], [8], [], [10, 19, 28, 37, 46, 55], []], 

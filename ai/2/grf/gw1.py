@@ -2,10 +2,6 @@ import sys; args = sys.argv[1:]
 import re
 
 # GW1 - 2000/2000 - 100%
-# I decided to use the casing provided by the spec for this lab (camelCase)
-# Sidenote: throughout the lab I use 'graph' or 'edges' to refer to graphDS["edges"]
-#           so please don't be confused if I name graphDS["edges"] 'graph' in some 
-#           places and 'edges' in other places
 
 def gDirective(directive, graphDS):
     directiveRegex = r"G(G|N)?(\d+)(W(\d+))?(R(\d+))?"

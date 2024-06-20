@@ -1,7 +1,7 @@
 import sys; args = sys.argv[1:]
 import time
 
-# Othello F - pcgabor 9b
+# Othello F - pcgabor 9b - 100%
 
 flips = {
     # index: [[right], [left], [down], [up], [leftdowndiag], [leftupdiag], [rightdowndiag], [rightupdiag]]		

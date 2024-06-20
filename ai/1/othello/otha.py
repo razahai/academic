@@ -1,6 +1,6 @@
 import sys; args = sys.argv[1:]
 
-# Othello A
+# Othello A - 100%
 
 def main():
     moves = []

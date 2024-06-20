@@ -7,9 +7,6 @@ seen = set()
 def main():
     default_board = "........."
     
-    # i actually don't understand how this works 
-    # b/c it doesn't account for boards starting
-    # with o, but it still works
     tttoe(default_board, "x")
     
     print(distinct_boards, diff_games)

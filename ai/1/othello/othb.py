@@ -1,9 +1,6 @@
 import sys; args = sys.argv[1:]
 
-# Othello B - 78.3% of tokens
-# UPD: i still don't understand this lab,
-# but othello is over now so idrc
-# also if you ever see this ihy michael 
+# Othello B - 78.3% of tokens - 96.2%
 
 def main():
     moves = []

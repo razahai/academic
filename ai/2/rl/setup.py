@@ -1,7 +1,6 @@
 import sys; args = sys.argv[1:]
 
 # RL Setup - 100%
-# dumb lab, literally just gw2 (but this time we had to get all paths, not shortest)
 
 edges = []
 rwds = []

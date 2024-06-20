@@ -1,7 +1,3 @@
-
-# * 9:48 EST to 11:28 EST 
-# * Time Elapsed: 1h40m (kinda crazy)
-# * All unmodified exercises were ran in codingbat and returned zero errors
 # * Lab1 - 100%
 
 # Warmup 1
@@ -118,3 +114,4 @@ def love6(a, b):
 
 def in1to10(n, outside_mode):
    return True if (n <= 1 or n >= 10) and outside_mode else (True if n >= 1 and n <= 10 and not outside_mode else False) 
+

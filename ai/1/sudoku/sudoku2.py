@@ -1,11 +1,6 @@
 import sys; args = sys.argv[1:]
 
-# sudoku 2 - undefined%
-# this is the worst code of all time
-# i hate this lab 
-# also the grader is stupid -> you could have 3s on your machine but it'll be 17s on the grader
-# GET MORE COMPUTING POWER PLEASE
-# i give up 🏳️
+# sudoku 2 - 92%
 
 def jbf(pzl, excluded, s2p):
     if solved(pzl): return pzl

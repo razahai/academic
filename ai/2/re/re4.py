@@ -1,9 +1,8 @@
 import sys; args = sys.argv[1:]
 idx = int(args[0])-60
 
-# RE4 - 96% ish
-# target length is 253  }
-# current length is 280 } 27 chars - need to get <20 chars
+# RE4 - 95.2%
+# target length is 253 - current 280
 
 regex = [
     r"/^(0(?!10)|1)*$/", # 60, ac

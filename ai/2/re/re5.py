@@ -1,8 +1,8 @@
 import sys; args = sys.argv[1:]
 idx = int(args[0])-70
 
-# RE5 - 391 - 90% lmao
-# target length is 246
+# RE5 - 90%
+# target length is 246 - current 391
 
 regex = [
     r"/^(?=.*a)(?=.*e)(?=.*i)(?=.*o)(?=.*u)[a-z]+$/m", # 70

@@ -96,4 +96,3 @@ def close_far(a, b, c):
 def make_chocolate(small, big, goal):
    return [-1, goal-5*min(big, goal//5)][goal-5*min(big,goal//5)<=small]
 
-

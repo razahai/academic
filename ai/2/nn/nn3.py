@@ -2,7 +2,7 @@ import sys; args = sys.argv[1:]
 import random
 import math
 
-# NN3 - 99% ish
+# NN3 - 99.5%
 
 alpha = 0.25
 
@@ -31,7 +31,7 @@ def main():
     if out_err < best_out_err:
         display(nn, weights)
         best_out_err = out_err
-    
+
 def back_propagate(nn, weights, outputs):
     feed_forward(nn, weights)
     # E = t_i - y_i^l
@@ -98,7 +98,7 @@ def feed_forward(nn, weights):
 def generate_data(inequality, num):
     inputs = []
     outputs = []
-    
+
     for _ in range(10000):
         x = random.uniform(-1.5, 1.5)
         y = random.uniform(-1.5, 1.5)
@@ -142,7 +142,7 @@ def init_nn(inp, out):
             for _ in range(len(nn[i]) * len(nn[i+1])):
                 std = math.sqrt(2 / (len(nn[i]) + len(nn[i+1])))
                 weight.append(random.gauss(0, std))
-                #weight.append(random.random())
+                # weight.append(random.random())
             weights.append(weight)
     else:
         nn.append(inp)

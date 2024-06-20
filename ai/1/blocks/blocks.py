@@ -1,16 +1,7 @@
 import sys; args = sys.argv[1:]
 
-# Blocks - undefined%
+# Blocks - 100%
 # 16/16 - 2.048s 
-# this lab was kinda stupid because
-# the varying test cases basically
-# determined your score 
-# *
-# on one run you could have 77s 
-# on another you could have a timeout
-# and on another you could have like 1s 
-# *
-# thankfully i got 2s so idc anymore
 
 def main():
     global cx,cy

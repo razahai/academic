@@ -1,7 +1,7 @@
 import sys; args = sys.argv[1:]
 import time
 
-# Othello E - Midgame Alpha beta - 91.4% sad
+# Othello E - Midgame Alpha beta - 91.4%
 
 flips = {
     # index: [[right], [left], [down], [up], [leftdowndiag], [leftupdiag], [rightdowndiag], [rightupdiag]]		

@@ -510,3 +510,4 @@ class Strategy:
             else:
                 midgame = abmidgame(board, player, -65, 65, 3)
                 best_move.value=midgame[-1]
+

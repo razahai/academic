@@ -1,7 +1,6 @@
 import sys; args = sys.argv[1:]
 
 # Crossword 2 - 84.93% 
-# bad lab didn't like it - (mostly because it was too hard)
 
 BLOCKCHAR = "#"
 OPENCHAR = "-"

@@ -1,7 +1,7 @@
 import sys; args = sys.argv[1:]
 idx = int(args[0])-50
 
-# RE3 - undefined%
+# RE3 - 98.9%
 # length -> 200 min: <=~190
 
 regex = [

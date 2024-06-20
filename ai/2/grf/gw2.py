@@ -2,8 +2,6 @@ import sys; args = sys.argv[1:]
 import re
 
 # GW2 - 100%
-# this has some edge cases that won't work, but i cba to fix them
-# if you submit enough times, you will get 100% by getting the right set of test cases
 
 POSSIBILITIES = {
     "N": "N",

@@ -1,6 +1,6 @@
 import sys; args = sys.argv[1:]
 
-# really bad score -- ~89%
+# AStar - ~89%
 
 def main():
     global gspace, gcoords, pcoords, width, height

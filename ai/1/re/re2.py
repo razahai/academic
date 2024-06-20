@@ -2,7 +2,7 @@ import sys; args = sys.argv[1:]
 idx = int(args[0])-40
 
 # * Length - 214 (min: 180)
-# * RE2 - ~93?% (maybe less/more)
+# * RE2 - 95.7%
 
 regex = [
     r"/^[x.o]{64}$/i", # 40, ac

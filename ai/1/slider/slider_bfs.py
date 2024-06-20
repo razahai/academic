@@ -1,7 +1,7 @@
 import sys; args = sys.argv[1:]
 import time
 
-# * BFS - 100% (I'm pretty sure grader kinda broke, I did not optimize at all)
+# * BFS - 100%
 
 start_time = time.time()
 
