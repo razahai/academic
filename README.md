@@ -1,6 +1,6 @@
 # edu/academic/*
 
-vcs for managing classes, assignments, files, etc. 
+VCS for managing classes, assignments, files, etc. 
 
 ## scripts
 
@@ -11,4 +11,4 @@ vcs for managing classes, assignments, files, etc.
 
 ## notes
 
-files from web, mobile, foundations, and ap are not included in this repository, primarily due to the fact that i no longer have access to them 
+Files from web, mobile, foundations, and ap are not included in this repository, primarily due to the fact that i no longer have access to them 
