@@ -2,13 +2,11 @@
 
 VCS for managing classes, assignments, files, etc. 
 
-## scripts
+## Scripts
 
-**ai-clean-commit** - strips full name, graduation year, and class period from the bottom of each file in ai/
+- `ai-clean-commit` - strips full name, graduation year, and class period from the bottom of each file in the `ai/` folder.
+- `cv-clean-commit` - replaces ion username with "--" in each file in the `cv/` folder.
 
-**cv-clean-commit** - replaces ion username with "--" in each file in cv/
+## Notes
 
-
-## notes
-
-Files from web, mobile, foundations, and ap are not included in this repository, primarily due to the fact that i no longer have access to them 
+- I no longer have access to my files from the following courses: Web Development, Mobile Apps Development, Accelerated Foundations of Computer Science, and AP Computer Science A+.
