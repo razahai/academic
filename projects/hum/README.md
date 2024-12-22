@@ -11,11 +11,11 @@ This is the culmination of my yearlong project for my junior HUM at TJHSST. We w
 This project is a 360° interactive video that shows an Uber driver driving around Washington D.C. and talking about the state of transportation infrastructure. All of the models in this video were extracted from GTA: San Andreas.
 
 <p float="left" align="middle">
-    <img align="top" src="/docs/scene_1.png" width="49%"/>
-    <img align="top" src="/docs/scene_2.png" width="49%"/>
+    <img align="top" src="/projects/hum/docs/scene_1.png" width="49%"/>
+    <img align="top" src="/projects/hum/docs/scene_2.png" width="49%"/>
 </p>
 <p align="middle">
-    <img align="top" src="/docs/scene_3.png" width="49%"/>
+    <img align="top" src="/projects/hum/docs/scene_3.png" width="49%"/>
 </p>
 
 ## Run Locally
