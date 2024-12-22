@@ -1,4 +1,0 @@
-#/bin/sh
-
-cp /csl/users/--/cluster/cv/labs/$1.cpp /csl/users/--/cluster/cv/mainlab.cpp || exit 1
-make 
