@@ -4,15 +4,15 @@ set folder=ai
 @REM set env variables
 for /f "tokens=*" %%v in (%CD%\.env) do set %%v
 
-if not exist %CD%\%folder%\ echo You need to name your AI folder as the following: "%folder%" & exit /b 1
+if not exist %CD%\courses\tjhsst\%folder%\ echo You need to name your AI folder as the following: "%folder%" & exit /b 1
 
 @REM temporarily append -original to the folder so it gets ignored by git
 @REM copy the original folder into a new folder called "ai" which will be
 @REM committed to the repository
-ren %folder% "%folder%-original"
-robocopy "%folder%-original" ai /E > nul
+ren courses\tjhsst\%folder% "courses\tjhsst\%folder%-original"
+robocopy "courses\tjhsst\%folder%-original" courses\tjhsst\ai /E > nul
 
-cd "./%folder%" || exit /b 1
+cd "./courses/tjhsst/%folder%" || exit /b 1
 
 for /r %%f in (*.py) do (
     @REM get text from file using type cmd and get only the lines that dont 
@@ -24,17 +24,17 @@ for /r %%f in (*.py) do (
 
 cd ..
 
-git add ai > nul
+git add courses/tjhsst/ai > nul
 
 if [%1] == [] (
-    git commit -m "routine(ai): update ai folder" > nul
+    git commit -m "update ai folder" > nul
 ) else (
-    git commit -m "routine(ai): %~1" > nul
+    git commit -m "%~1" > nul
 )
 
 git push origin main
 
 @REM delete the temporary folder and rename the original folder
 @REM back to its original name
-rd /s /q "./%folder%"
-ren "%folder%-original" %folder%
+rd /s /q "./courses/tjhsst/%folder%"
+ren "courses\tjhsst\%folder%-original" courses\tjhsst\%folder%
