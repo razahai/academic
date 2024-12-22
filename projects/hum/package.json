@@ -1,0 +1,23 @@
+{
+  "name": "hum11",
+  "version": "1.0.0",
+  "description": "Public transportation effects on the wealth disparity in DC.",
+  "scripts": {
+    "dev": "npx vite",
+    "build": "npx vite build",
+    "preview": "npx vite preview --port 8080",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "author": "raza",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.164.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/three": "^0.164.0",
+    "gh-pages": "^6.1.1",
+    "vite": "^5.2.11"
+  }
+}

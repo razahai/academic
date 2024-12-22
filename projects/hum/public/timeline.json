@@ -1,0 +1,401 @@
+{
+    "timeline": [
+        {
+            "id": 0,
+            "name": "preface",
+            "data": [{
+                "type": "transition",
+                "transition": "preface",
+                "delay": 5000
+            }],
+            "speed": 0.0025,
+            "delay": 1000
+        },
+        {
+            "id": 1,
+            "name": "car_arrival",
+            "path": "path_001",
+            "anim": "CAR_sit",
+            "delay": 1000
+        },
+        {
+            "id": 2,
+            "name": "ask_get_in",
+            "audio": "audio_1",
+            "delay": 4250
+        },
+        {
+            "id": 3,
+            "name": "transition_01",
+            "camera": "passenger",
+            "data": [{
+                "type": "transition",
+                "lookat": [-1520.383, 7.364, 927.8],
+                "delay": 2000
+            }],
+            "delay": 3000
+        },
+        {
+            "id": 4,
+            "name": "tuning_music",
+            "anim": "CAR_tune_radio",
+            "audio": "audio_2",
+            "delay": 3900
+        },
+        {
+            "id": 5,
+            "name": "background_music",
+            "audio": "background",
+            "delay": 2900
+        },
+        {
+            "id": 6,
+            "name": "car_move_1",
+            "path": "path_002", 
+            "anim": "CAR_sit",
+            "audio": "audio_3",
+            "delay": 1000,
+            "speed": 0.00090,
+            "data": [{
+                "type": "citation",
+                "citation": "(ReOpen DC Advisory Group)",
+                "delay": 17000
+            }]
+        },  
+        {
+            "id": 7,
+            "name": "chapter_01",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 1: Introduction",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 8,
+            "name": "audio_4",
+            "audio": "audio_4",
+            "delay": 33200,
+            "data": [{
+                "type": "citation",
+                "citation": "(Sen, \"US Transportation Fuels Inequality\"), (Keister and Moller, 63-64)",
+                "delay": 30200
+            }]
+        },
+        {
+            "id": 9,
+            "name": "audio_5",
+            "audio": "audio_5",
+            "delay": 16200,
+            "data": [{
+                "type": "citation",
+                "citation": "(DC Federal Infrastructure Plan)",
+                "delay": 6500
+            }]
+        },
+        {
+            "id": 10,
+            "name": "audio_6",
+            "audio": "audio_6",
+            "delay": 24900
+        },
+        {
+            "id": 11,
+            "name": "chapter_02",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 2: Government Policy & Funding",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 12,
+            "name": "car_move_2",
+            "path": "path_003",
+            "audio": "audio_7",
+            "speed": 0.0010,
+            "delay": 21500,
+            "data": [{
+                "type": "citation",
+                "citation": "(Davis)",
+                "delay": 20000
+            }]
+        },
+        {
+            "id": 13,
+            "name": "audio_8",
+            "audio": "audio_8",
+            "delay": 35200
+        },
+        {
+            "id": 14,
+            "name": "audio_9_back_in_history",
+            "audio": "audio_9",
+            "delay": 42200,
+            "data": [{
+                "type": "citation",
+                "citation": "(Phelps), (Weingroff, \"Original Intent\")",
+                "delay": 40200
+            }]
+        },
+        {
+            "id": 15,
+            "name": "audio_10_car_dependence",
+            "audio": "audio_10",
+            "delay": 37200
+        },
+        {
+            "id": 16,
+            "name": "chapter_03",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 3: Lobbying Efforts & Neglect",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 17,
+            "name": "car_move_3",
+            "path": "path_004",
+            "speed": 0.0010,
+            "audio": "audio_11",
+            "delay": 36500
+        },
+        {
+            "id": 18,
+            "name": "audio_12_neglect",
+            "audio": "audio_12",
+            "delay": 43300
+        },
+        {
+            "id": 19,
+            "name": "audio_13_counterargument",
+            "audio": "audio_13",
+            "delay": 42500
+        },
+        {
+            "id": 20,
+            "name": "chapter_04",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 4: Discriminatory Practices",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 21,
+            "name": "car_move_4",
+            "path": "path_005",
+            "speed": 0.0010,
+            "audio": "audio_14",
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(National Equity Atlas)",
+                    "delay": 14500
+                },
+                {
+                    "type": "image",
+                    "image": "national_equity_atlas.png",
+                    "delay": 14500
+                }
+            ],
+            "delay": 5000
+        },
+        {
+            "id": 22,
+            "name": "audio_14_intermediate_img",
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Sen, \"US Transportation Fuels Inequality\")",
+                    "delay": 4900
+                },
+                {
+                    "type": "image",
+                    "image": "vehicle_costs_burden.png",
+                    "delay": 4900
+                }
+            ]
+        },
+        {
+            "id": 23,
+            "name": "audio_15",
+            "audio": "audio_15",
+            "delay": 24250
+        },
+        {
+            "id": 24,
+            "name": "audio_16",
+            "audio": "audio_16",
+            "delay": 17200
+        },
+        {
+            "id": 25,
+            "name": "audio_17",
+            "audio": "audio_17",
+            "delay": 11200
+        },
+        {
+            "id": 26,
+            "name": "chapter_05",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 5: Civil Rights Movement & Gentrification",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 27,
+            "name": "car_move_5",
+            "path": "path_006",
+            "speed": 0.0010,
+            "audio": "audio_18",
+            "delay": 32750,
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Stanford King Research Institute)",
+                    "delay": 47500 
+                }
+            ]
+        },
+        {
+            "id": 28,
+            "name": "audio_19_white_flight",
+            "audio": "audio_19",
+            "delay": 16200,
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Smithsonian)",
+                    "delay": 15000
+                }
+            ]
+        },
+        {
+            "id": 29,
+            "name": "audio_20_socioeconomic_predict",
+            "audio": "audio_20",
+            "delay": 73200,
+            "data": [
+                {
+                    "type": "image",
+                    "image": "wmata_rail_map.png",
+                    "delay": 55000
+                },
+                {
+                    "type": "citation",
+                    "citation": "(McKenzie), (Richardson et. al), (WMATA)",
+                    "delay": 55000
+                }
+            ]
+        },
+        {
+            "id": 30,
+            "name": "audio_21_planning",
+            "audio": "audio_21",
+            "delay": 26200
+        },
+        {
+            "id": 31,
+            "name": "chapter_06",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 6: Public Opinion",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 32,
+            "name": "car_move_6",
+            "path": "path_007",
+            "speed": 0.0010,
+            "audio": "audio_22",
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Wiengroff, \"Good Roads Everywhere\"), (Thomas), (Phelps)",
+                    "delay": 42000
+                }
+            ],
+            "delay": 30000
+        },
+        {
+            "id": 33,
+            "name": "audio_23_literary_source",
+            "audio": "audio_23",
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Sexton, \"Public Transportation\")",
+                    "delay": 63000
+                }
+            ],
+            "delay": 65200
+        },
+        {
+            "id": 34,
+            "name": "audio_24_opinions_today",
+            "audio": "audio_24",
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Mineta Transportation Institute)",
+                    "delay": 43000
+                }
+            ],
+            "delay": 45200
+        },
+        {
+            "id": 35,
+            "name": "chapter_07",
+            "data": [{
+                "type": "transition",
+                "transition": "chapter",
+                "chapter": "Chapter 7: Recent Initiatives & Conclusion",
+                "delay": 3000
+            }]
+        },
+        {
+            "id": 36,
+            "name": "car_move_7",
+            "path": "path_008",
+            "speed": 0.0010,
+            "audio": "audio_25",
+            "data": [
+                {
+                    "type": "citation",
+                    "citation": "(Sen, \"US Transportation Fuels Inequality\"), (ReOpen DC Advisory Group)",
+                    "delay": 27500
+                }
+            ],
+            "delay": 15000
+        },
+        {
+            "id": 37,
+            "name": "audio_26_conclusion",
+            "path": "path_009",
+            "speed": 0.0015,
+            "audio": "audio_26",
+            "delay": 15000
+        },
+        {
+            "id": 38,
+            "name": "smug_ending",
+            "audio": "audio_27",
+            "delay": 12500
+        },
+        {
+            "id": 39,
+            "name": "end"
+        }
+    ]
+}
+
